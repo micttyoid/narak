@@ -140,7 +140,7 @@ impl AssetLoader for TiledLoader {
                 if let Some(obj_layer_data_collision) = &tile_data.collision {
                     let mut rects = Vec::new();
                     for collision_obj_data in obj_layer_data_collision.object_data() {
-                        println!("Object data shape: {:?}", collision_obj_data.shape);
+                        //println!("Object data shape: {:?}", collision_obj_data.shape);
                         match collision_obj_data.shape {
                             Rect {width, height} => {
                                 rects.push((

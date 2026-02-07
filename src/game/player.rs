@@ -18,6 +18,7 @@ use crate::{
 };
 
 pub const PLAYER_Z_TRANSLATION: f32 = 100.;
+pub const PLAYER_COLLIDER_RADIUS: f32 = 12.;
 
 pub(super) fn plugin(app: &mut App) {
     app.load_resource::<PlayerAssets>();
@@ -63,10 +64,10 @@ pub fn player(
         PlayerMarker,
         LockedAxes::new().lock_rotation(),
         Transform::from_xyz(0., 0., PLAYER_Z_TRANSLATION),
-        // TODO: kinematic (usually you end up)
+        // TODO: possibly kinematic later that should update `movement::apply_movement` along
         RigidBody::Dynamic,
         GravityScale(0.0),
-        Collider::circle(12.),
+        Collider::circle(PLAYER_COLLIDER_RADIUS),
     )
 }
 
