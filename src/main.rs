@@ -5,18 +5,15 @@
 
 mod asset_tracking;
 mod audio;
-mod game;
 #[cfg(feature = "dev")]
 mod dev_tools;
+mod game;
 mod menus;
 mod screens;
 mod theme;
 mod utils;
 
-use bevy::{
-    asset::AssetMetaCheck,
-    prelude::*,
-};
+use bevy::{asset::AssetMetaCheck, prelude::*};
 
 use avian2d::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
@@ -33,7 +30,8 @@ impl Plugin for AppPlugin {
     fn build(&self, app: &mut App) {
         // Add Bevy plugins.
         app.add_plugins(
-            DefaultPlugins.build()
+            DefaultPlugins
+                .build()
                 .set(ImagePlugin::default_nearest())
                 .set(AssetPlugin {
                     // Wasm builds will check for meta files (that don't exist) if this isn't set.
@@ -52,9 +50,15 @@ impl Plugin for AppPlugin {
                     ..default()
                 }),
         );
-        
-        app.add_plugins(PhysicsPlugins::default().with_length_unit(100.0));
-        #[cfg(debug_assertions)] {
+
+        app.add_plugins(PhysicsPlugins::default().with_length_unit(100.0))
+            .insert_resource({
+                let mut physics_time = Time::<Physics>::default();
+                physics_time.pause();
+                physics_time
+            });
+        #[cfg(debug_assertions)]
+        {
             app.add_plugins(PhysicsDebugPlugin);
         }
         app.add_plugins(TilemapPlugin);

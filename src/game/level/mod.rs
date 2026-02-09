@@ -1,3 +1,4 @@
+use avian2d::prelude::{Physics, PhysicsTime};
 use bevy::prelude::*;
 
 use crate::{
@@ -32,7 +33,9 @@ pub fn spawn_level(
     mut commands: Commands,
     level_assets: Res<LevelAssets>,
     player_assets: Res<PlayerAssets>,
+    mut time: ResMut<Time<Physics>>,
 ) {
+    time.unpause();
     commands.spawn((
         Name::new("Level"),
         Transform::default(),

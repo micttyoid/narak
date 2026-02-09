@@ -2,6 +2,7 @@
 
 use avian2d::prelude::{Physics, PhysicsTime};
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
+use bevy_aseprite_ultra::prelude::{AseAnimation, ManualTick};
 
 use crate::{
     Pause, game::level::spawn_level, menus::Menu, screens::Screen, utils::tiled::spawn_tiled_map,
@@ -36,14 +37,34 @@ pub(super) fn plugin(app: &mut App) {
     );
 }
 
-fn unpause(mut next_pause: ResMut<NextState<Pause>>, mut time: ResMut<Time<Physics>>) {
+fn unpause(
+    mut next_pause: ResMut<NextState<Pause>>,
+    mut time: ResMut<Time<Physics>>,
+    mut cmd: Commands,
+    query: Query<Entity, With<AseAnimation>>,
+) {
     next_pause.set(Pause(false));
+    // unpause physics time
     time.unpause();
+    // Remove ManualTick to let the Aseprite animation library take over again
+    for entity in &query {
+        cmd.entity(entity).remove::<ManualTick>();
+    }
 }
 
-fn pause(mut next_pause: ResMut<NextState<Pause>>, mut time: ResMut<Time<Physics>>) {
+fn pause(
+    mut next_pause: ResMut<NextState<Pause>>,
+    mut time: ResMut<Time<Physics>>,
+    mut cmd: Commands,
+    query: Query<Entity, With<AseAnimation>>,
+) {
     next_pause.set(Pause(true));
-    time.pause(); // pausing physics
+    // pause physics time
+    time.pause();
+    // Add ManualTick to all animations when pausing (stops Aseprite animations)
+    for entity in &query {
+        cmd.entity(entity).insert(ManualTick);
+    }
 }
 
 fn spawn_pause_overlay(mut commands: Commands) {
