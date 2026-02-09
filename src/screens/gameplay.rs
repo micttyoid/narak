@@ -16,7 +16,7 @@ pub struct GameplayLifetime;
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         OnEnter(Screen::Gameplay),
-        (spawn_tiled_map::<2>, spawn_level).chain(),
+        (spawn_tiled_map::<1>, spawn_level).chain(),
     );
 
     // Toggle pause on key press.

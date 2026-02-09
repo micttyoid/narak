@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use avian2d::prelude::*;
+//use avian2d::prelude::*;
 use crate::{
     screens::gameplay::GameplayLifetime,
     AppSystems, PausableSystems,
@@ -32,6 +32,7 @@ fn update_projectiles() {}
 
 /// The chakra, bullet, ...
 /// [`Player`] can throw. [`Mob`] can throw. or throw [`Source`] instead
+/// Game should run smoothly roughly 1000 projectiles: https://youtu.be/AY7QEEnSGVU
 #[derive(Component)]
 #[require(GameplayLifetime)]
 pub struct Projectile;

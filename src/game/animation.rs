@@ -7,14 +7,17 @@
 use bevy::prelude::*;
 use bevy_aseprite_ultra::{
     AsepriteUltraPlugin,
-    prelude::{AnimationEvents, AseAnimation},
+    prelude::*,
 };
 use rand::seq::IndexedRandom;
 
 use crate::{
     AppSystems, PausableSystems,
     audio::sound_effect,
-    game::player::{Player, PlayerAssets},
+    game::{
+        level::enemies::{Enemy, EnemyAssets},
+        player::{Player, PlayerAssets},
+    },
 };
 
 pub(super) fn plugin(app: &mut App) {
@@ -55,7 +58,7 @@ fn update_animation_state(mut anim_q: Query<(&mut AseAnimation, &PlayerAnimation
 /// animation.
 fn trigger_step_sound_effect(
     mut cmd: Commands,
-    player_assets: If<Res<PlayerAssets>>,
+    anim_assets: If<Res<AnimationAssets>>,
     mut anim_q: Query<&PlayerAnimation>,
     mut anim_msg: MessageReader<AnimationEvents>,
 ) {
@@ -65,7 +68,7 @@ fn trigger_step_sound_effect(
                 match msg {
                     AnimationEvents::LoopCycleFinished(_entity) => {
                         let rng = &mut rand::rng();
-                        let random_step = player_assets.steps.choose(rng).unwrap().clone();
+                        let random_step = anim_assets.player.steps.choose(rng).unwrap().clone();
                         cmd.spawn(sound_effect(random_step));
                     }
                     AnimationEvents::Finished(_entity) => (),
@@ -74,6 +77,7 @@ fn trigger_step_sound_effect(
         }
     }
 }
+
 
 /// Component that tracks player's animation state.
 /// It is tightly bound to aseprite animation we use.
@@ -98,4 +102,62 @@ pub enum PlayerDirection {
     Down,
     Left,
     Right,
+}
+
+/// Component that tracks enemy's animation state.
+/// It is tightly bound to aseprite animation we use.
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+pub struct EnemyAnimation {
+    pub state: EnemyAnimationState,
+    pub direction: EnemyDirection,
+}
+
+#[derive(Reflect, PartialEq, Default)]
+pub enum EnemyAnimationState {
+    Walk,
+    #[default]
+    Idle,
+}
+
+#[derive(Reflect, PartialEq, Default)]
+pub enum EnemyDirection {
+    #[default]
+    Up,
+    Down,
+    Left,
+    Right,
+}
+
+#[derive(Resource, Asset, Clone, Reflect)]
+#[reflect(Resource)]
+pub struct AnimationAssets {
+    pub player: PlayerAssets,
+    pub enemies: EnemyAssets,
+}
+
+impl FromWorld for AnimationAssets {
+    fn from_world(world: &mut World) -> Self {
+        let assets = world.resource::<AssetServer>();
+        Self {
+            player: PlayerAssets {
+                aseprite: assets.load("textures/chars/player.aseprite"),
+                steps: vec![
+                    assets.load("audio/sound_effects/step1.ogg"),
+                    assets.load("audio/sound_effects/step2.ogg"),
+                    assets.load("audio/sound_effects/step3.ogg"),
+                    assets.load("audio/sound_effects/step4.ogg"),
+                ],
+            },
+            enemies: EnemyAssets {
+                aseprite: assets.load("textures/chars/basic_enemy.aseprite"),
+                steps: vec![
+                    assets.load("audio/sound_effects/step1.ogg"),
+                    assets.load("audio/sound_effects/step2.ogg"),
+                    assets.load("audio/sound_effects/step3.ogg"),
+                    assets.load("audio/sound_effects/step4.ogg"),
+                ],
+            },
+        }
+    }
 }

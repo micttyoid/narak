@@ -7,7 +7,7 @@ use crate::{
     AppSystems, PausableSystems,
     asset_tracking::LoadResource,
     game::{
-        animation::{PlayerAnimation, PlayerAnimationState, PlayerDirection},
+        animation::{AnimationAssets, PlayerAnimation, PlayerAnimationState, PlayerDirection},
         movement::{MovementController, ScreenWrap},
     },
 };
@@ -16,7 +16,7 @@ pub const PLAYER_Z_TRANSLATION: f32 = 100.;
 pub const PLAYER_COLLIDER_RADIUS: f32 = 12.;
 
 pub(super) fn plugin(app: &mut App) {
-    app.load_resource::<PlayerAssets>();
+    app.load_resource::<AnimationAssets>();
 
     // Record directional input as movement controls.
 
@@ -28,15 +28,26 @@ pub(super) fn plugin(app: &mut App) {
     );
 }
 
-#[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Default, Reflect)]
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Reflect)]
 #[reflect(Component)]
-pub struct Player;
+pub struct Player {
+    life: usize,
+}
+
+impl Default for Player {
+    fn default() -> Self {
+        Self {
+            life: 3, // "3 lives on player?"
+        }
+    }
+}
+
 
 /// The player character.
-pub fn player(max_speed: f32, player_assets: &PlayerAssets) -> impl Bundle {
+pub fn player(max_speed: f32, anim_assets: &AnimationAssets) -> impl Bundle {
     (
         Name::new("Player"),
-        Player,
+        Player::default(),
         PlayerAnimation {
             state: PlayerAnimationState::default(),
             direction: PlayerDirection::default(),
@@ -46,7 +57,7 @@ pub fn player(max_speed: f32, player_assets: &PlayerAssets) -> impl Bundle {
                 .with_repeat(AnimationRepeat::Loop)
                 .with_direction(AnimationDirection::Forward)
                 .with_speed(2.0),
-            aseprite: player_assets.player.clone(),
+            aseprite: anim_assets.player.aseprite.clone(),
         },
         Sprite::default(),
         MovementController {
@@ -54,7 +65,7 @@ pub fn player(max_speed: f32, player_assets: &PlayerAssets) -> impl Bundle {
             ..default()
         },
         ScreenWrap,
-        LockedAxes::new().lock_rotation(),
+        LockedAxes::new().lock_rotation(), // To be resolved with later kinematic solution
         Transform::from_xyz(0., 0., PLAYER_Z_TRANSLATION),
         // TODO: possibly kinematic later that should update `movement::apply_movement` along
         RigidBody::Dynamic,
@@ -112,26 +123,9 @@ fn record_player_directional_input(
     }
 }
 
-#[derive(Resource, Asset, Clone, Reflect)]
-#[reflect(Resource)]
+#[derive(Asset, Clone, Reflect)]
 pub struct PlayerAssets {
-    //#[dependancy]
-    player: Handle<Aseprite>,
+    pub aseprite: Handle<Aseprite>,
     #[dependency]
-    pub steps: Vec<Handle<AudioSource>>,
-}
-
-impl FromWorld for PlayerAssets {
-    fn from_world(world: &mut World) -> Self {
-        let assets = world.resource::<AssetServer>();
-        Self {
-            player: assets.load("textures/chars/player.aseprite"),
-            steps: vec![
-                assets.load("audio/sound_effects/step1.ogg"),
-                assets.load("audio/sound_effects/step2.ogg"),
-                assets.load("audio/sound_effects/step3.ogg"),
-                assets.load("audio/sound_effects/step4.ogg"),
-            ],
-        }
-    }
+    pub steps: Vec<Handle<AudioSource>>,    
 }

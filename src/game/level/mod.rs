@@ -1,3 +1,4 @@
+pub mod enemies;
 pub mod projectiles;
 
 use avian2d::prelude::{Physics, PhysicsTime};
@@ -7,13 +8,20 @@ use bevy::prelude::*;
 use crate::{
     asset_tracking::LoadResource,
     audio::music,
-    game::player::{PlayerAssets, player},
+    game::{
+        player::{player},
+        animation::AnimationAssets,
+        level::{
+            enemies::{basic_enemy, /* EnemyAssets, */},
+        },
+    },
     screens::Screen,
 };
 
 pub(super) fn plugin(app: &mut App) {
     app.load_resource::<LevelAssets>();
     app.add_plugins((
+        enemies::plugin,
         projectiles::plugin,
     ));
 }
@@ -38,7 +46,7 @@ impl FromWorld for LevelAssets {
 pub fn spawn_level(
     mut commands: Commands,
     level_assets: Res<LevelAssets>,
-    player_assets: Res<PlayerAssets>,
+    anim_assets: Res<AnimationAssets>,
     mut time: ResMut<Time<Physics>>,
 ) {
     time.unpause();
@@ -48,7 +56,9 @@ pub fn spawn_level(
         Visibility::default(),
         DespawnOnExit(Screen::Gameplay),
         children![
-            player(100.0, &player_assets),
+            player(100.0, &anim_assets),
+            basic_enemy((2., 5.).into(), &anim_assets),
+            basic_enemy((4., 5.).into(), &anim_assets),
             (
                 Name::new("Gameplay Music"),
                 music(level_assets.music.clone())
