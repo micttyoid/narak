@@ -58,8 +58,7 @@ pub(super) fn plugin(app: &mut App) {
 
 /// Top game loop. If boss is low on life, the level is set to the
 /// next until the last level.
-/// "1 boss per level, if boss gets despawned, auto move on?" "yes"
-/// Also reset the level when we finish last - or player dies
+/// "1 boss per level, if boss gets life zero, auto move on?" "yes"
 fn check_boss_and_player(
     mut next_screen: ResMut<NextState<Screen>>,
     mut next_level: ResMut<NextState<Level>>,
@@ -67,27 +66,30 @@ fn check_boss_and_player(
     mut next_pause: ResMut<NextState<Pause>>,
     mut time: ResMut<Time<Physics>>,
     current_level: Res<State<Level>>,
-    boss_q: Query<Entity, With<Boss>>,
+    query: Query<(Entity, &Enemy), With<Boss>>,
     player: Single<&Player>,
 ) {
-    if boss_q.is_empty() {
-        time.pause();
-        next_pause.set(Pause(true));
-        let lev = current_level.get();
-        if lev.is_last() {
-            next_menu.set(Menu::Credits);
-            next_screen.set(Screen::Title);
-            next_level.set(Level::default());
-        } else {
-            next_level.set(lev.next());
-            next_screen.set(Screen::Loading);
-        }
-        if (*player).life == 0 {
-            // TODO: lost
-            next_menu.set(Menu::Credits);
-            next_screen.set(Screen::Title);
-            next_level.set(Level::default());
-        }
+    match query.single() {
+        Ok((_, boss_enemy)) => {
+            if boss_enemy.life == 0 {
+                time.pause();
+                next_pause.set(Pause(true));
+                let lev = current_level.get();
+                if lev.is_last() {
+                    next_menu.set(Menu::Credits);
+                } else {
+                    next_level.set(lev.next());
+                    next_screen.set(Screen::Loading);
+                }
+            }
+            if (*player).life == 0 {
+                // TODO: lost
+                next_menu.set(Menu::Credits);
+            }
+        },
+        Err(_) => {
+            panic!("No boss found at the current level");
+        },
     }
 }
 
