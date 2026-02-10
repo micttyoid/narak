@@ -135,6 +135,7 @@ pub fn spawn_level(
                     basic_boss((140., 40.).into(), &anim_assets),
                     (
                         Name::new("Gameplay Music"),
+                        DespawnOnExit(Menu::None),
                         music(level_assets.music.clone())
                     )
                 ],
@@ -149,6 +150,7 @@ pub fn spawn_level(
                     basic_boss((140., 40.).into(), &anim_assets),
                     (
                         Name::new("Gameplay Music"),
+                        DespawnOnExit(Menu::None),
                         music(level_assets.music.clone())
                     )
                 ],
@@ -163,6 +165,7 @@ pub fn spawn_level(
                     basic_boss((140., 40.).into(), &anim_assets),
                     (
                         Name::new("Gameplay Music"),
+                        DespawnOnExit(Menu::None),
                         music(level_assets.music.clone())
                     )
                 ],
@@ -177,6 +180,7 @@ pub fn spawn_level(
                     basic_boss((140., 40.).into(), &anim_assets),
                     (
                         Name::new("Gameplay Music"),
+                        DespawnOnExit(Menu::None),
                         music(level_assets.music.clone())
                     )
                 ],
