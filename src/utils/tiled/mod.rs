@@ -46,6 +46,7 @@ use crate::{
         player::PLAYER_Z_TRANSLATION,
         level::Level,
     },
+    screens::Screen,
     utils::tiled::shaper::{
         PreSharedShape,
         shaper,
@@ -68,15 +69,17 @@ pub fn spawn_tiled_map (
     let asset_path = match current_level.get() {
         Level::Foo =>  "map1.tile-16x16.tmx",
         Level::Bar =>  "map2.tile-16x16.tmx",
-        Level::Baz =>  "map2.tile-16x16.tmx",
-        Level::Qux =>  "map2.tile-16x16.tmx",
-        Level::Quux => "map2.tile-16x16.tmx",
+        Level::Baz =>  "map3.tile-16x16.tmx",
+        Level::Qux =>  "map4.tile-16x16.tmx",
+        Level::Quux => "map5.tile-16x16.tmx",
     };
-    commands.spawn(TiledMapBundle {
-        tiled_map: TiledMapHandle(asset_server.load(asset_path)),
-        ..Default::default()
-    });
-
+    commands.spawn((
+        TiledMapBundle {
+            tiled_map: TiledMapHandle(asset_server.load(asset_path)),
+            ..Default::default()
+        },
+        DespawnOnExit(Screen::Gameplay),
+    ));
 }
 
 #[derive(TypePath, Asset)]
@@ -448,6 +451,7 @@ fn process_loaded_maps(
                                             ..Default::default()
                                         },
                                         Transform::default(),
+                                        DespawnOnExit(Screen::Gameplay),
                                     ))
                                     .id();
                                 // TODO: bundle-wise work instead
@@ -473,6 +477,7 @@ fn process_loaded_maps(
                                                     ),
                                                     Collider::from(shaper(&obj.shape)),
                                                     ColliderOf { body: layer_entity },
+                                                    DespawnOnExit(Screen::Gameplay),
                                                 )).id()
                                             ),
                                             _ =>  colliders.push(
@@ -483,6 +488,7 @@ fn process_loaded_maps(
                                                     ),
                                                     Collider::from(shaper(&obj.shape)),
                                                     ColliderOf { body: layer_entity },
+                                                    DespawnOnExit(Screen::Gameplay),
                                                 )).id()
                                             ),
                                         }

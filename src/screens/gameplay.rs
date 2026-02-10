@@ -1,5 +1,7 @@
 //! The screen state for the main gameplay.
 
+use std::fs::exists;
+
 use avian2d::prelude::{Physics, PhysicsTime};
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 use bevy_aseprite_ultra::prelude::{AseAnimation, ManualTick};
@@ -37,7 +39,6 @@ pub(super) fn plugin(app: &mut App) {
             // Top-level game loop
             (check_boss_and_player).run_if(
                 in_state(Screen::Gameplay)
-                .and(not(in_state(Menu::None)))
             ),
             // Toggle pause on key press.
             (pause, spawn_pause_overlay, open_pause_menu).run_if(
@@ -63,6 +64,7 @@ pub(super) fn plugin(app: &mut App) {
 /// next until the last level.
 /// "1 boss per level, if boss gets life zero, auto move on?" "yes"
 fn check_boss_and_player(
+    mut next_screen: ResMut<NextState<Screen>>,
     mut next_level: ResMut<NextState<Level>>,
     mut next_menu: ResMut<NextState<Menu>>,
     mut time: ResMut<Time<Physics>>,
@@ -71,8 +73,8 @@ fn check_boss_and_player(
     player: Single<&Player>,
 ) {
     match query.single() {
-        Ok((_, enemy)) => {
-            if enemy.life == 0 {
+        Ok((_, boss_enemy)) => {
+            if boss_enemy.life == 0 {
                 time.pause();
                 let lev = current_level.get();
                 if lev.is_last() {
@@ -80,6 +82,7 @@ fn check_boss_and_player(
                     next_menu.set(Menu::Credits);
                 } else {
                     next_level.set(lev.next());
+                    next_screen.set(Screen::Loading);
                 }
             }
             if (*player).life == 0 {
