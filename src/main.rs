@@ -13,10 +13,15 @@ mod screens;
 mod theme;
 mod utils;
 
-use bevy::{asset::AssetMetaCheck, prelude::*};
+use bevy::{
+    asset::{AssetMetaCheck, load_internal_binary_asset},
+    prelude::*,
+};
 
 use avian2d::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
+
+use crate::theme::palette::BACKGROUND_DARK;
 
 //use bevy_ecs_tiled::prelude::*;
 
@@ -49,6 +54,14 @@ impl Plugin for AppPlugin {
                     .into(),
                     ..default()
                 }),
+        );
+
+        // loading font as default - needs to be after default plugins are added
+        load_internal_binary_asset!(
+            app,
+            TextFont::default().font,
+            "../assets/fonts/samarn.ttf", // may change later or only use for certain places
+            |bytes: &[u8], _path: String| { Font::try_from_bytes(bytes.to_vec()).unwrap() }
         );
 
         app.add_plugins(PhysicsPlugins::default().with_length_unit(100.0))
@@ -90,6 +103,9 @@ impl Plugin for AppPlugin {
         // Set up the `Pause` state.
         app.init_state::<Pause>();
         app.configure_sets(Update, PausableSystems.run_if(in_state(Pause(false))));
+
+        // Background Color
+        app.insert_resource(ClearColor(BACKGROUND_DARK));
     }
 }
 
