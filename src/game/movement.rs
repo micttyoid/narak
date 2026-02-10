@@ -70,8 +70,8 @@ impl Default for MovementController {
     }
 }
 
-
 fn on_collision(
+    mut commands: Commands,
     mut collision_reader: MessageReader<CollisionStart>,
     mut enemy_query: Query<(Entity, &mut Enemy)>,
     mut player: Single<(Entity, &mut Player)>,
@@ -89,6 +89,7 @@ fn on_collision(
                 // Player got hit!
                 player.life = player.life.saturating_sub(1);
             }
+            commands.entity(proj_entity).despawn();
         }
     }
 }
