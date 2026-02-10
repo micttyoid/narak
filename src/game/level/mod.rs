@@ -3,10 +3,7 @@ pub mod projectiles;
 
 use avian2d::prelude::{Physics, PhysicsTime};
 
-use bevy::{
-    prelude::*,
-    state::state::FreelyMutableState,
-};
+use bevy::{prelude::*, state::state::FreelyMutableState};
 
 use crate::{
     asset_tracking::LoadResource,
@@ -30,7 +27,7 @@ pub(super) fn plugin(app: &mut App) {
 /// [`Level`] exists in both [`Screen::Gameplay`] and [`Screen::Loading`]
 /// When a condition meets at [`screens::gameplay::check_boss_and_player`],
 /// The next is level is set, and screen is set [`Screen::Loading`].
-#[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, Reflect,)]
+#[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, Reflect)]
 pub enum Level {
     #[default]
     Foo,
@@ -47,13 +44,13 @@ impl SubStates for Level {
         match sources {
             Some(Screen::Gameplay) => Some(Self::default()),
             Some(Screen::Loading) => Some(Self::default()),
-            _ => None
+            _ => None,
         }
     }
 }
 
 impl States for Level {
-    const DEPENDENCY_DEPTH : usize = <Level as SubStates>::SourceStates::SET_DEPENDENCY_DEPTH + 1;
+    const DEPENDENCY_DEPTH: usize = <Level as SubStates>::SourceStates::SET_DEPENDENCY_DEPTH + 1;
 }
 
 impl FreelyMutableState for Level {}
@@ -123,7 +120,7 @@ pub fn spawn_level(
                     )
                 ],
             ));
-        },
+        }
         Level::Bar => {
             commands.spawn((
                 Name::new("Level"),
@@ -132,16 +129,16 @@ pub fn spawn_level(
                 DespawnOnExit(Screen::Gameplay),
                 children![
                     player(100.0, &anim_assets),
-                    basic_enemy((2., 7.).into(), &anim_assets),
-                    basic_enemy((4., 7.).into(), &anim_assets),
-                    basic_boss((6., 7.).into(), &anim_assets),
+                    basic_enemy((-70., 20.).into(), &anim_assets),
+                    basic_enemy((-60., 0.).into(), &anim_assets),
+                    basic_boss((140., 40.).into(), &anim_assets),
                     (
                         Name::new("Gameplay Music"),
                         music(level_assets.music.clone())
                     )
                 ],
             ));
-        },
+        }
         Level::Baz => {
             commands.spawn((
                 Name::new("Level"),
@@ -150,16 +147,16 @@ pub fn spawn_level(
                 DespawnOnExit(Screen::Gameplay),
                 children![
                     player(100.0, &anim_assets),
-                    basic_enemy((3., 8.).into(), &anim_assets),
-                    basic_enemy((5., 8.).into(), &anim_assets),
-                    basic_boss((7., 8.).into(), &anim_assets),
+                    basic_enemy((-70., 20.).into(), &anim_assets),
+                    basic_enemy((-60., 0.).into(), &anim_assets),
+                    basic_boss((140., 40.).into(), &anim_assets),
                     (
                         Name::new("Gameplay Music"),
                         music(level_assets.music.clone())
                     )
                 ],
             ));
-        },
+        }
         Level::Qux => {
             commands.spawn((
                 Name::new("Level"),
@@ -168,16 +165,16 @@ pub fn spawn_level(
                 DespawnOnExit(Screen::Gameplay),
                 children![
                     player(100.0, &anim_assets),
-                    basic_enemy((2., 10.).into(), &anim_assets),
-                    basic_enemy((4., 10.).into(), &anim_assets),
-                    basic_boss((6., 10.).into(), &anim_assets),
+                    basic_enemy((-70., 20.).into(), &anim_assets),
+                    basic_enemy((-60., 0.).into(), &anim_assets),
+                    basic_boss((140., 40.).into(), &anim_assets),
                     (
                         Name::new("Gameplay Music"),
                         music(level_assets.music.clone())
                     )
                 ],
             ));
-        },
+        }
         Level::Quux => {
             commands.spawn((
                 Name::new("Level"),
@@ -186,16 +183,16 @@ pub fn spawn_level(
                 DespawnOnExit(Screen::Gameplay),
                 children![
                     player(100.0, &anim_assets),
-                    basic_enemy((2., -2.).into(), &anim_assets),
-                    basic_enemy((4., -2.).into(), &anim_assets),
-                    basic_boss((6., -2.).into(), &anim_assets),
+                    basic_enemy((-70., 20.).into(), &anim_assets),
+                    basic_enemy((-60., 0.).into(), &anim_assets),
+                    basic_boss((140., 40.).into(), &anim_assets),
                     (
                         Name::new("Gameplay Music"),
                         music(level_assets.music.clone())
                     )
                 ],
             ));
-        },
+        }
     }
     time.unpause();
 }

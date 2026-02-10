@@ -11,10 +11,8 @@ use crate::{
 pub const ENEMY_Z_TRANSLATION: f32 = PLAYER_Z_TRANSLATION;
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_systems(Update, (update_enemies,).in_set(PausableSystems));
+    app.add_systems(Update, (check_enemy_death).in_set(PausableSystems));
 }
-
-fn update_enemies(mut commands: Commands) {}
 
 /// "1 boss per level, if boss gets life zero, auto move on?" "yes"
 /// Do not despawn at the life zero like the other enemies
@@ -85,4 +83,28 @@ pub fn basic_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
         GravityScale(0.0),
         Collider::circle(basic_enemy_collision_radius),
     )
+}
+
+fn check_enemy_death(
+    mut enemy_query: Query<(Entity, &Enemy, &mut AseAnimation)>,
+    mut events: MessageReader<AnimationEvents>,
+    mut cmd: Commands,
+) {
+    for (entity, enemy, mut animation) in enemy_query.iter_mut() {
+        if enemy.life == 0 {
+            animation.animation.play("Death", AnimationRepeat::Count(0));
+            // mark as dead so this runs once
+            cmd.entity(entity)
+                .remove::<RigidBody>()
+                .remove::<Collider>()
+                .remove::<GravityScale>()
+                .remove::<LockedAxes>();
+        }
+    }
+    for event in events.read() {
+        match event {
+            AnimationEvents::Finished(entity) => cmd.entity(*entity).despawn(),
+            AnimationEvents::LoopCycleFinished(_entity) => (),
+        };
+    }
 }

@@ -12,7 +12,7 @@ use crate::{
     AppSystems, PausableSystems,
     audio::sound_effect,
     game::{
-        level::enemies::{Enemy, EnemyAssets},
+        level::enemies::EnemyAssets,
         player::{Player, PlayerAssets},
     },
 };
