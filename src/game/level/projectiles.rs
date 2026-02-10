@@ -13,6 +13,7 @@ use crate::{
 };
 
 pub const PROJECTILE_Z_TRANSLATION: f32 = PLAYER_Z_TRANSLATION;
+pub const SOURCE_Z_TRANSLATION: f32 = PLAYER_Z_TRANSLATION;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
@@ -55,11 +56,22 @@ impl Default for Projectile {
 
 /// The source where the projectiles spread out from
 /// This is to make projectile pattern that's spread out from a source like
-/// in the game touhou.
+/// in the game Touhou.
+/// Not necessarily colliding
 /// [`Player`] can throw. [`Mob`] can throw.
 #[derive(Component)]
 #[require(GameplayLifetime)]
-pub struct Source;
+pub struct Source {
+    pub direction: Dir2,
+}
+
+impl Default for Source {
+    fn default() -> Self {
+        Self {
+            direction: Dir2::NEG_Y,
+        }
+    }
+}
 
 /// thrower radius: radius of the thrower
 /// TODO: visual using AnimationAssets
@@ -69,8 +81,8 @@ pub fn basic_projectile(xy: Vec2, direction: Dir2, thrower_radius: f32, anim_ass
     //          radius of proj             radius of thrower
     //    pr ----------------------|---------------------------------- Thrower
     //    ^ spawned with room
-    let new_xy =
-        (basic_projectile_collision_radius + thrower_radius + 1.0e-5) * direction + xy;
+
+    let new_xy = (basic_projectile_collision_radius + thrower_radius + 1.0e-5) * direction + xy;
     (
         Name::new("Basic Projectile"),
         Projectile { direction },
@@ -78,7 +90,7 @@ pub fn basic_projectile(xy: Vec2, direction: Dir2, thrower_radius: f32, anim_ass
         LinearDamping(0.0),
         //Sprite::default(),
         ScreenWrap,
-        LockedAxes::new().lock_rotation(), // To be resolved with later kinematic solution
+        LockedAxes::new().lock_rotation(),
         Transform::from_xyz(new_xy.x, new_xy.y, PROJECTILE_Z_TRANSLATION),
         RigidBody::Dynamic,
         GravityScale(0.0),

@@ -120,12 +120,12 @@ pub fn spawn_level(
                     basic_boss((140., 40.).into(), &anim_assets),
                     (
                         Name::new("Gameplay Music"),
-                        DespawnOnExit(Menu::None), // To remove at ending such as to Menu::Credit
-                        music(level_assets.music.clone())
-                    )
+                        DespawnOnExit(Menu::None), // To remove at ending such as to [`Menu::Credit`]
+                        music(level_assets.music.clone()),
+                    ),
                 ],
             ));
-        }
+        },
         Bar => {
             commands.entity(lev_entity).insert((
                 children![
@@ -136,11 +136,11 @@ pub fn spawn_level(
                     (
                         Name::new("Gameplay Music"),
                         DespawnOnExit(Menu::None),
-                        music(level_assets.music.clone())
-                    )
+                        music(level_assets.music.clone()),
+                    ),
                 ],
             ));
-        }
+        },
         Baz => {
             commands.entity(lev_entity).insert((
                 children![
@@ -151,11 +151,11 @@ pub fn spawn_level(
                     (
                         Name::new("Gameplay Music"),
                         DespawnOnExit(Menu::None),
-                        music(level_assets.music.clone())
-                    )
+                        music(level_assets.music.clone()),
+                    ),
                 ],
             ));
-        }
+        },
         Qux => {
             commands.entity(lev_entity).insert((
                 children![
@@ -166,11 +166,11 @@ pub fn spawn_level(
                     (
                         Name::new("Gameplay Music"),
                         DespawnOnExit(Menu::None),
-                        music(level_assets.music.clone())
-                    )
+                        music(level_assets.music.clone()),
+                    ),
                 ],
             ));
-        }
+        },
         Quux => {
             commands.entity(lev_entity).insert((
                 children![
@@ -181,11 +181,11 @@ pub fn spawn_level(
                     (
                         Name::new("Gameplay Music"),
                         DespawnOnExit(Menu::None),
-                        music(level_assets.music.clone())
-                    )
+                        music(level_assets.music.clone()),
+                    ),
                 ],
             ));
-        }
+        },
     }
     time.unpause();
 }

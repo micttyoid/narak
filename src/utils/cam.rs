@@ -1,9 +1,16 @@
+
+
+use bevy::{
+    image::{ImageLoaderSettings, ImageSampler},
+    prelude::*,
+};
 use bevy::{
     prelude::*,
     camera::*,
 };
 
 use crate::{
+    asset_tracking::ResourceHandles, menus::Menu, screens::Screen, theme::widget,
     game::player::Player
 };
 
@@ -17,7 +24,10 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(Update, update_camera);
 }
 
-fn spawn_camera(mut commands: Commands) {
+fn spawn_camera(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+) {
     commands.spawn((
         Name::new("Camera"),
         Camera2d,
@@ -26,6 +36,22 @@ fn spawn_camera(mut commands: Commands) {
             scale: 0.5,
             ..OrthographicProjection::default_2d()
         }),
+    ));
+
+    commands.spawn((
+        Node {
+            position_type: PositionType::Absolute,
+            bottom: Val::ZERO,
+            right: Val::ZERO,
+            width: percent(6.5),
+            height: Val::Auto,
+            margin: UiRect::all(Val::Px(5.)),
+            ..default()
+        },
+        ImageNode::new(asset_server.load_with_settings(
+            "images/powered-by-bevy.png",
+            |settings: &mut ImageLoaderSettings| {settings.sampler = ImageSampler::linear();},
+        )),
     ));
 }
 
