@@ -7,7 +7,7 @@ use crate::{
     AppSystems, PausableSystems,
     asset_tracking::LoadResource,
     game::{
-        animation::{AnimationAssets, PlayerAnimation, PlayerAnimationState, PlayerDirection},
+        animation::{AnimationAssets, PlayerAnimation, PlayerAnimationState},
         level::projectiles::*,
         movement::{MovementController, ScreenWrap},
     },
@@ -53,7 +53,6 @@ pub fn player(max_speed: f32, anim_assets: &AnimationAssets) -> impl Bundle {
         Player::default(),
         PlayerAnimation {
             state: PlayerAnimationState::default(),
-            direction: PlayerDirection::default(),
         },
         AseAnimation {
             animation: Animation::tag("walk-up")
@@ -95,23 +94,19 @@ fn record_player_directional_input(
         let mut intent = Vec2::ZERO;
         if input.pressed(KeyCode::KeyW) {
             intent.y += 1.0;
-            animation.direction = PlayerDirection::Up;
             pressed_flag = true;
         }
         if input.pressed(KeyCode::KeyS) {
             intent.y -= 1.0;
-            animation.direction = PlayerDirection::Down;
             pressed_flag = true;
         }
         if input.pressed(KeyCode::KeyA) {
             intent.x -= 1.0;
-            animation.direction = PlayerDirection::Left;
             pressed_flag = true;
             transform.scale.x = -1.;
         }
         if input.pressed(KeyCode::KeyD) {
             intent.x += 1.0;
-            animation.direction = PlayerDirection::Right;
             pressed_flag = true;
             transform.scale.x = 1.;
         }

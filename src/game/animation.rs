@@ -34,19 +34,11 @@ fn update_animation_state(mut anim_q: Query<(&mut AseAnimation, &PlayerAnimation
     for (mut ase_sprite_animation, player) in anim_q.iter_mut() {
         match player.state {
             PlayerAnimationState::Idle => {
-                ase_sprite_animation.animation.play_loop("idle");
+                ase_sprite_animation.animation.play_loop("Idle");
             }
-            PlayerAnimationState::Walk => match player.direction {
-                PlayerDirection::Up => {
-                    ase_sprite_animation.animation.play_loop("walk-up");
-                }
-                PlayerDirection::Down => {
-                    ase_sprite_animation.animation.play_loop("walk-down");
-                }
-                PlayerDirection::Left | PlayerDirection::Right => {
-                    ase_sprite_animation.animation.play_loop("walk-right");
-                }
-            },
+            PlayerAnimationState::Walk => {
+                ase_sprite_animation.animation.play_loop("Walk");
+            }
         }
     }
 }
@@ -81,7 +73,6 @@ fn trigger_step_sound_effect(
 #[reflect(Component)]
 pub struct PlayerAnimation {
     pub state: PlayerAnimationState,
-    pub direction: PlayerDirection,
 }
 
 #[derive(Reflect, PartialEq, Default)]
@@ -89,15 +80,6 @@ pub enum PlayerAnimationState {
     Walk,
     #[default]
     Idle,
-}
-
-#[derive(Reflect, PartialEq, Default)]
-pub enum PlayerDirection {
-    #[default]
-    Up,
-    Down,
-    Left,
-    Right,
 }
 
 #[derive(Resource, Asset, Clone, Reflect)]
@@ -112,7 +94,7 @@ impl FromWorld for AnimationAssets {
         let assets = world.resource::<AssetServer>();
         Self {
             player: PlayerAssets {
-                aseprite: assets.load("textures/chars/player.aseprite"),
+                aseprite: assets.load("textures/chars/mom.aseprite"),
                 steps: vec![
                     assets.load("audio/sound_effects/step1.ogg"),
                     assets.load("audio/sound_effects/step2.ogg"),

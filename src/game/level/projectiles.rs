@@ -66,7 +66,7 @@ pub fn basic_projectile(
     anim_assets: &AnimationAssets,
 ) -> impl Bundle {
     let basic_projectile_collision_radius: f32 = 2.;
-    let speed: f32 = 500.0;
+    let speed: f32 = 300.0;
     //          radius of proj             radius of thrower
     //    pr ----------------------|---------------------------------- Thrower
     //    ^ spawned with room
