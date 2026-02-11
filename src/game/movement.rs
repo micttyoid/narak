@@ -12,39 +12,30 @@
 //! Note that the implementation used here is limited for demonstration
 //! purposes. If you want to move the player in a smoother way,
 //! consider using a [fixed timestep](https://github.com/bevyengine/bevy/blob/main/examples/movement/physics_in_fixed_timestep.rs).
-use bevy::{input::common_conditions::input_just_pressed, prelude::*, window::PrimaryWindow};
-use avian2d::prelude::*;
 use crate::{
+    AppSystems, PausableSystems,
     game::{
         animation::*,
+        level::{enemies::*, projectiles::*},
         player::*,
-        level::{
-            projectiles::*,
-            enemies::*,
-        },
     },
-    AppSystems, PausableSystems,
 };
+use avian2d::prelude::*;
+use bevy::{input::common_conditions::input_just_pressed, prelude::*, window::PrimaryWindow};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         Update,
         (
-            apply_player_movement, apply_screen_wrap,
+            apply_player_movement,
+            apply_screen_wrap,
             apply_player_throw.run_if(input_just_pressed(KeyCode::Space)),
         )
             .chain()
             .in_set(AppSystems::Update)
             .in_set(PausableSystems),
     );
-    app.add_systems(
-        Update,
-        (
-            on_collision,
-        )
-            .in_set(PausableSystems),
-    );    
-                 
+    app.add_systems(Update, (on_collision,).in_set(PausableSystems));
 }
 
 /// These are the movement parameters for our character controller.
@@ -85,7 +76,7 @@ fn on_collision(
                 // Enemy got hit!
                 enemy.life = enemy.life.saturating_sub(1);
             } else {
-                let (player_entity, player) = &mut* player;
+                let (player_entity, player) = &mut *player;
                 // Player got hit!
                 player.life = player.life.saturating_sub(1);
             }
@@ -94,9 +85,7 @@ fn on_collision(
     }
 }
 
-fn apply_player_movement(
-    mut movement_query: Query<(&MovementController, &mut LinearVelocity,)>,
-) {
+fn apply_player_movement(mut movement_query: Query<(&MovementController, &mut LinearVelocity)>) {
     for (controller, mut rb_vel) in movement_query.iter_mut() {
         rb_vel.0 = controller.max_speed * controller.intent; // normal
     }
@@ -105,28 +94,34 @@ fn apply_player_movement(
 fn apply_player_throw(
     mut commands: Commands,
     anim_assets: Res<AnimationAssets>,
-    player: Single<(Entity, &Transform), With<Player>>,
-    global_transform: Query<&GlobalTransform>,    
+    player: Single<(Entity, &Transform, &Player), With<Cool>>,
+    global_transform: Query<&GlobalTransform>,
 ) {
-    let (player_entity, player_transform) = *player;
+    let (player_entity, player_transform, player) = *player;
     if let Ok(player_global_transform) = global_transform.get(player_entity) {
-        let ((x,y,_)) = player_transform.translation.into();
-        let xy = Vec2::new(x,y);
+        let (x, y, _) = player_global_transform.translation().into(); // This may differ by the worldwrap
+        let xy = Vec2::new(x, y);
 
-        let dir_not_norm = player_transform.local_x().xy(); 
+        let dir_not_norm = player_transform.local_x().xy();
         let direction = Dir2::new(dir_not_norm.normalize()).expect("It is not normalized");
 
-        commands.spawn(
-            basic_projectile(xy, direction, PLAYER_COLLIDER_RADIUS, &anim_assets),
-        );        
+        commands.spawn(basic_projectile(
+            xy,
+            direction,
+            PLAYER_COLLIDER_RADIUS,
+            &anim_assets,
+        ));
+        // update cool
+        commands.entity(player_entity).remove::<Cool>();
+        commands.spawn(Cool::new(player.cool));
     }
 }
 
 /// This should be where the optimization takes place if the frame dropss
 fn apply_projectile_movement(
-    mut movement_query: Query<(&Projectile, &mut LinearVelocity,)>,
+    mut movement_query: Query<(&Projectile, &mut LinearVelocity)>,
     mut commands: Commands,
-    player: Single<(Entity, &Transform), With<Player>>,    
+    player: Single<(Entity, &Transform), With<Player>>,
 ) {
     let (player_entity, player_transform) = *player;
 
@@ -137,7 +132,6 @@ fn apply_projectile_movement(
     ));
     */
 }
-
 
 #[derive(Component, Reflect)]
 #[reflect(Component)]

@@ -8,6 +8,7 @@ use crate::{
     asset_tracking::LoadResource,
     game::{
         animation::{AnimationAssets, PlayerAnimation, PlayerAnimationState, PlayerDirection},
+        level::projectiles::*,
         movement::{MovementController, ScreenWrap},
     },
 };
@@ -28,17 +29,19 @@ pub(super) fn plugin(app: &mut App) {
     );
 }
 
-#[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Reflect)]
+#[derive(Component, Debug, Clone, Copy, PartialEq, Reflect)]
 #[require(Collider)]
 #[reflect(Component)]
 pub struct Player {
     pub life: usize,
+    pub cool: f32, // throw cool time. every [`cool`] second, the player can throw
 }
 
 impl Default for Player {
     fn default() -> Self {
         Self {
             life: 3, // "3 lives on player?"
+            cool: 0.5,
         }
     }
 }
@@ -71,6 +74,7 @@ pub fn player(max_speed: f32, anim_assets: &AnimationAssets) -> impl Bundle {
         RigidBody::Dynamic,
         GravityScale(0.0),
         Collider::circle(PLAYER_COLLIDER_RADIUS),
+        Cool::default(),
     )
 }
 

@@ -3,40 +3,25 @@ use std::io::Cursor;
 use std::path::Path;
 use std::sync::Arc;
 
-use bevy::{
-    asset::{
-        AssetLoader,
-        io::Reader,
+use avian2d::{
+    parry::{
+        math::Isometry,
+        na::{Const, Isometry2, OPoint},
+        shape::{Compound, SharedShape},
+        transformation::vhacd::{VHACD, VHACDParameters},
     },
+    prelude::*,
+};
+use bevy::{
+    asset::{AssetLoader, io::Reader},
     log::{info, warn},
     platform::collections::HashMap,
     prelude::*,
     reflect::TypePath,
 };
 use bevy_ecs_tilemap::prelude::*;
-use avian2d::{
-    parry::{
-        na::{
-            OPoint,
-            Const,
-            Isometry2,
-        },
-        math::{            
-            Isometry,
-        },
-        shape::{
-            SharedShape,
-            Compound,
-        },
-        transformation::vhacd::{VHACD, VHACDParameters,}
-    },  
-    prelude::*,
-};
 use thiserror::Error;
-use tiled::{
-    ObjectData,
-    ObjectShape,
-};
+use tiled::{ObjectData, ObjectShape};
 
 use crate::{
     // TODO: asset_tracking::LoadResource,
@@ -45,17 +30,14 @@ use crate::{
 
 type Point2 = OPoint<f32, Const<2>>;
 
-
 pub fn shaper(shape: &ObjectShape) -> SharedShape {
     use ObjectShape::*;
     match shape {
-        Rect { width, height } => {
-            SharedShape::cuboid(width / 2.0, height / 2.0)
-        },
+        Rect { width, height } => SharedShape::cuboid(width / 2.0, height / 2.0),
         // https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#ellipse
         Ellipse { width, height } => {
             unimplemented!();
-        },
+        }
         // (Editor) lining with the "Polygon" option, do not finish it
         Polyline { points } => {
             if points.is_empty() {
@@ -67,7 +49,8 @@ pub fn shaper(shape: &ObjectShape) -> SharedShape {
                     Point2::new(points[1].0, points[1].1),
                 )
             } else {
-                let vertices: Vec<Point2> = points.iter().map(|(x, y)| Point2::new(*x, *y)).collect();
+                let vertices: Vec<Point2> =
+                    points.iter().map(|(x, y)| Point2::new(*x, *y)).collect();
                 let n = vertices.len();
                 let indices: Vec<[u32; 2]> = (0..n).map(|i| [i as u32, (i + 1) as u32]).collect();
                 SharedShape::polyline(vertices, Some(indices))
@@ -82,7 +65,11 @@ pub fn shaper(shape: &ObjectShape) -> SharedShape {
             let n = vertices.len();
             let indices: Vec<[u32; 2]> = (0..n).map(|i| [i as u32, ((i + 1) % n) as u32]).collect();
             // let decomposition = VHACD::decompose(&VHACDParameters::default(), &vertices, &indices, false);
-            SharedShape::convex_decomposition_with_params(&vertices, &indices, &VHACDParameters::default())
+            SharedShape::convex_decomposition_with_params(
+                &vertices,
+                &indices,
+                &VHACDParameters::default(),
+            )
         }
         Point(_x, _y) => {
             unimplemented!();
@@ -97,13 +84,11 @@ pub fn shaper(shape: &ObjectShape) -> SharedShape {
 pub fn get_shared_shape(shape: &ObjectShape) -> Option<SharedShape> {
     use ObjectShape::*;
     match shape {
-        Rect { width, height } => {
-            Some(SharedShape::cuboid(width / 2.0, height / 2.0))
-        },
+        Rect { width, height } => Some(SharedShape::cuboid(width / 2.0, height / 2.0)),
         // https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#ellipse
         Ellipse { width, height } => {
             unimplemented!();
-        },
+        }
         // (Editor) lining with the "Polygon" option, do not finish it
         Polyline { points } => {
             if points.is_empty() {
@@ -115,7 +100,8 @@ pub fn get_shared_shape(shape: &ObjectShape) -> Option<SharedShape> {
                     Point2::new(points[1].0, points[1].1),
                 ))
             } else {
-                let vertices: Vec<Point2> = points.iter().map(|(x, y)| Point2::new(*x, *y)).collect();
+                let vertices: Vec<Point2> =
+                    points.iter().map(|(x, y)| Point2::new(*x, *y)).collect();
                 let n = vertices.len();
                 let indices: Vec<[u32; 2]> = (0..n).map(|i| [i as u32, (i + 1) as u32]).collect();
                 Some(SharedShape::polyline(vertices, Some(indices)))
@@ -130,7 +116,11 @@ pub fn get_shared_shape(shape: &ObjectShape) -> Option<SharedShape> {
             let n = vertices.len();
             let indices: Vec<[u32; 2]> = (0..n).map(|i| [i as u32, ((i + 1) % n) as u32]).collect();
             // let decomposition = VHACD::decompose(&VHACDParameters::default(), &vertices, &indices, false);
-            Some(SharedShape::convex_decomposition_with_params(&vertices, &indices, &VHACDParameters::default()))
+            Some(SharedShape::convex_decomposition_with_params(
+                &vertices,
+                &indices,
+                &VHACDParameters::default(),
+            ))
         }
         Point(_x, _y) => {
             unimplemented!();
@@ -142,26 +132,22 @@ pub fn get_shared_shape(shape: &ObjectShape) -> Option<SharedShape> {
 }
 
 #[allow(dead_code)]
-pub struct PreSharedShape {    
+pub struct PreSharedShape {
     tile_id: tiled::TileId,
     objects: Vec<ObjectData>,
 }
 #[allow(dead_code)]
 impl PreSharedShape {
-    
     pub fn new(tile_id: tiled::TileId, objects: Vec<ObjectData>) -> Self {
-        Self {
-            tile_id,
-            objects,
-        }
+        Self { tile_id, objects }
     }
 
     // from `ObjectLayerData::object_data()`
     pub fn from_object_data(tile_id: tiled::TileId, object_datas: &[ObjectData]) -> Self {
         Self {
             tile_id,
-            objects: object_datas.to_vec()
-        }        
+            objects: object_datas.to_vec(),
+        }
     }
 
     pub fn is_empty(&self) -> bool {
@@ -179,9 +165,9 @@ impl PreSharedShape {
         if self.objects.len() == 1 {
             return get_shared_shape(&self.objects[0].shape);
         }
-        let mut compound = Vec::<(Isometry2::<f32>, SharedShape)>::new();
+        let mut compound = Vec::<(Isometry2<f32>, SharedShape)>::new();
 
-        for obj in &self.objects {            
+        for obj in &self.objects {
             if let Some(shared_shape) = get_shared_shape(&obj.shape) {
                 if shared_shape.as_composite_shape().is_some() {
                     panic!("Nested composite shapes are not allowed.");

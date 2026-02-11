@@ -86,10 +86,10 @@ fn check_boss_and_player(
                 // TODO: lost
                 next_menu.set(Menu::Credits);
             }
-        },
+        }
         Err(_) => {
             panic!("No boss found at the current level");
-        },
+        }
     }
 }
 

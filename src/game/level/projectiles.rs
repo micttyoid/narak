@@ -1,5 +1,6 @@
 use avian2d::prelude::*;
 use bevy::prelude::*;
+use std::ops::{Deref, DerefMut};
 
 use crate::{
     AppSystems, PausableSystems,
@@ -20,6 +21,7 @@ pub(super) fn plugin(app: &mut App) {
         Update,
         (update_sources, update_projectiles).in_set(PausableSystems),
     );
+    app.add_systems(FixedUpdate, (update_cools).in_set(PausableSystems));
 }
 
 // TODO:
@@ -40,7 +42,7 @@ fn update_projectiles() {}
 /// The chakra, bullet, ...
 /// [`Player`] can throw. [`Mob`] can throw. or throw [`Source`] instead
 /// Game should run smoothly roughly 1000 projectiles: https://youtu.be/AY7QEEnSGVU
-#[derive(Component)]
+#[derive(Component, Debug)]
 #[require(GameplayLifetime, Collider, CollisionEventsEnabled)]
 pub struct Projectile {
     pub direction: Dir2,
@@ -54,28 +56,14 @@ impl Default for Projectile {
     }
 }
 
-/// The source where the projectiles spread out from
-/// This is to make projectile pattern that's spread out from a source like
-/// in the game Touhou.
-/// Not necessarily colliding
-/// [`Player`] can throw. [`Mob`] can throw.
-#[derive(Component)]
-#[require(GameplayLifetime)]
-pub struct Source {
-    pub direction: Dir2,
-}
-
-impl Default for Source {
-    fn default() -> Self {
-        Self {
-            direction: Dir2::NEG_Y,
-        }
-    }
-}
-
 /// thrower radius: radius of the thrower
 /// TODO: visual using AnimationAssets
-pub fn basic_projectile(xy: Vec2, direction: Dir2, thrower_radius: f32, anim_assets: &AnimationAssets) -> impl Bundle {
+pub fn basic_projectile(
+    xy: Vec2,
+    direction: Dir2,
+    thrower_radius: f32,
+    anim_assets: &AnimationAssets,
+) -> impl Bundle {
     let basic_projectile_collision_radius: f32 = 2.;
     let speed: f32 = 500.0;
     //          radius of proj             radius of thrower
@@ -97,4 +85,54 @@ pub fn basic_projectile(xy: Vec2, direction: Dir2, thrower_radius: f32, anim_ass
         Collider::circle(basic_projectile_collision_radius),
         Restitution::new(1.0),
     )
+}
+
+/// Player Projectile Cooldown - limit the projectiles player can have thrown at a time
+/// It is for now used only for projectile, but not limited to it.
+#[derive(Component, Debug, Clone, Default)]
+#[require(GameplayLifetime)]
+pub struct Cool(pub Timer);
+
+impl Cool {
+    pub fn new(duration: f32) -> Self {
+        Self {
+            0: Timer::from_seconds(duration, TimerMode::Once),
+        }
+    }
+}
+/// NOTE: For more control, use virtual time
+fn update_cools(
+    mut commands: Commands,
+    time: Res<Time>,
+    player: Single<Entity, With<Player>>,
+    mut cool_query: Query<(Entity, &mut Cool), Without<Player>>,
+) {
+    for (_, mut cool) in cool_query.iter_mut() {
+        cool.0.tick(time.delta());
+    }
+    for (cool_entity, cool) in cool_query.iter() {
+        if cool.0.is_finished() {
+            commands.entity(*player).insert_if_new(cool.clone());
+            commands.entity(cool_entity).despawn();
+        }
+    }
+}
+
+/// The source where the projectiles spread out from
+/// This is to make projectile pattern that's spread out from a source like
+/// in the game Touhou.
+/// Not necessarily colliding
+/// [`Player`] can throw. [`Mob`] can throw.
+#[derive(Component, Debug)]
+#[require(GameplayLifetime)]
+pub struct Source {
+    pub direction: Dir2,
+}
+
+impl Default for Source {
+    fn default() -> Self {
+        Self {
+            direction: Dir2::NEG_Y,
+        }
+    }
 }

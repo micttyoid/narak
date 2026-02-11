@@ -1,33 +1,24 @@
-
-
+use bevy::{camera::*, prelude::*};
 use bevy::{
     image::{ImageLoaderSettings, ImageSampler},
     prelude::*,
 };
-use bevy::{
-    prelude::*,
-    camera::*,
-};
 
 use crate::{
-    asset_tracking::ResourceHandles, menus::Menu, screens::Screen, theme::widget,
-    game::player::Player
+    asset_tracking::ResourceHandles, game::player::Player, menus::Menu, screens::Screen,
+    theme::widget,
 };
 
-pub const FOLLOW_CAMERA_TRESHOLD: f32 = 100.0;  // Determine based on the character speed
+pub const FOLLOW_CAMERA_TRESHOLD: f32 = 100.0; // Determine based on the character speed
 pub const FOLLOW_CAMERA_MAX_SPEED: f32 = 1000.0;
 pub const FOLLOW_CAMERA_BASE_SPEED: f32 = 4.5;
-
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(Startup, spawn_camera);
     app.add_systems(Update, update_camera);
 }
 
-fn spawn_camera(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-) {
+fn spawn_camera(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn((
         Name::new("Camera"),
         Camera2d,
@@ -50,7 +41,9 @@ fn spawn_camera(
         },
         ImageNode::new(asset_server.load_with_settings(
             "images/powered-by-bevy.png",
-            |settings: &mut ImageLoaderSettings| {settings.sampler = ImageSampler::linear();},
+            |settings: &mut ImageLoaderSettings| {
+                settings.sampler = ImageSampler::linear();
+            },
         )),
     ));
 }
@@ -67,9 +60,10 @@ fn update_camera(
         let d = camera_pos.distance(player_pos);
 
         // smoothing
-        let factor = (d / FOLLOW_CAMERA_TRESHOLD).clamp(1.0, FOLLOW_CAMERA_MAX_SPEED/ FOLLOW_CAMERA_BASE_SPEED);
+        let factor = (d / FOLLOW_CAMERA_TRESHOLD)
+            .clamp(1.0, FOLLOW_CAMERA_MAX_SPEED / FOLLOW_CAMERA_BASE_SPEED);
         let effective_speed = FOLLOW_CAMERA_BASE_SPEED * factor;
-        
+
         let pos: Vec2 = camera_pos.lerp(player_pos, effective_speed * time.delta_secs());
         camera_transform.translation.x = pos.x;
         camera_transform.translation.y = pos.y;

@@ -39,9 +39,7 @@ use tiled::ObjectShape;
 use crate::{
     game::{level::Level, player::PLAYER_Z_TRANSLATION},
     screens::Screen,
-    utils::{
-        tiled::shaper::{PreSharedShape, shaper},
-    },
+    utils::tiled::shaper::{PreSharedShape, shaper},
 };
 
 pub(super) fn plugin(app: &mut App) {
