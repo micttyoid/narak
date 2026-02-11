@@ -35,7 +35,7 @@ pub(super) fn plugin(app: &mut App) {
             .in_set(AppSystems::Update)
             .in_set(PausableSystems),
     );
-    app.add_systems(Update, (on_collision,).in_set(PausableSystems));
+    app.add_systems(FixedUpdate, (on_collision).in_set(PausableSystems));
 }
 
 /// These are the movement parameters for our character controller.
@@ -65,22 +65,50 @@ fn on_collision(
     mut commands: Commands,
     mut collision_reader: MessageReader<CollisionStart>,
     mut enemy_query: Query<(Entity, &mut Enemy)>,
-    mut player: Single<(Entity, &mut Player)>,
-    mut projectile_query: Query<(Entity, &Projectile)>,
+    mut player_query: Query<&mut Player>,
+    mut projectile_query: Query<(Entity, &mut Projectile)>,
 ) {
     for msg in collision_reader.read() {
-        let proj_entity = msg.collider1;
+        let c1 = msg.collider1;
         let c2 = msg.collider2;
-        if let Ok((proj_entity, projectile)) = projectile_query.get_mut(proj_entity) {
-            if let Ok((enemy_entity, mut enemy)) = enemy_query.get_mut(c2) {
+        if let Ok((proj_entity, mut projectile)) = projectile_query.get_mut(c1) {
+            if let Ok((_enemy_entity, mut enemy)) = enemy_query.get_mut(c2) {
                 // Enemy got hit!
                 enemy.life = enemy.life.saturating_sub(1);
-            } else {
-                let (player_entity, player) = &mut *player;
-                // Player got hit!
-                player.life = player.life.saturating_sub(1);
+                commands.entity(proj_entity).despawn();
+            } else if !player_query.contains(c1) {
+                // This part getting smelly
+                due_process(&mut commands, &proj_entity, &mut projectile);
             }
-            commands.entity(proj_entity).despawn();
+        } else if player_query.contains(c1) {
+            // Player got hit!
+            let mut player = player_query
+                .single_mut()
+                .expect("Player does not exist or more than one player");
+            player.life = player.life.saturating_sub(1);
+        }
+    }
+}
+
+fn due_process(commands: &mut Commands, proj_entity: &Entity, projectile: &mut Projectile) {
+    for due in projectile.dues.iter_mut() {
+        match due {
+            Due::BounceDown(count) => {
+                match count {
+                    1 => {
+                        // This goes to zero: remove
+                        commands.entity(*proj_entity).despawn();
+                    }
+                    0 => {
+                        //panic!("Bounce Down was not set correctly");
+                        commands.entity(*proj_entity).despawn(); // should not happen
+                    }
+                    _ => {
+                        *count = count.saturating_sub(1);
+                    }
+                }
+            }
+            _ => {}
         }
     }
 }
@@ -104,13 +132,29 @@ fn apply_player_throw(
 
         let dir_not_norm = player_transform.local_x().xy();
         let direction = Dir2::new(dir_not_norm.normalize()).expect("It is not normalized");
-
+        /*
         commands.spawn(basic_projectile(
             xy,
             direction,
             PLAYER_COLLIDER_RADIUS,
             &anim_assets,
         ));
+        */
+        commands.spawn(bounce_down_projectile(
+            xy,
+            direction,
+            PLAYER_COLLIDER_RADIUS,
+            &anim_assets,
+        ));
+        /*
+        commands.spawn(lifespan_projectile(
+            xy,
+            direction,
+            PLAYER_COLLIDER_RADIUS,
+            &anim_assets,
+        ));
+        */
+
         // update cool
         commands.entity(player_entity).remove::<Cool>();
         commands.spawn(Cool::new(player.cool));
