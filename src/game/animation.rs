@@ -105,6 +105,9 @@ impl FromWorld for AnimationAssets {
             },
             enemies: EnemyAssets {
                 aseprite: assets.load("textures/chars/seedling.aseprite"),
+                eye_enemy: assets.load("textures/chars/eye-enemy.aseprite"),
+                boss1: assets.load("textures/chars/boss1.aseprite"),
+                boss2: assets.load("textures/chars/boss2.aseprite"),
             },
         }
     }

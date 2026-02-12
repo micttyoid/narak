@@ -116,9 +116,9 @@ pub fn spawn_level(
         Foo => {
             commands.entity(lev_entity).insert((children![
                 player(100.0, &anim_assets),
-                basic_enemy((-70., 20.).into(), &anim_assets),
-                basic_enemy((-60., 0.).into(), &anim_assets),
-                basic_boss((140., 40.).into(), &anim_assets),
+                basic_enemy((80., -40.).into(), &anim_assets),
+                basic_enemy((-80., -40.).into(), &anim_assets),
+                basic_boss((0., 120.).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
                     DespawnOnExit(Menu::None), // To remove at ending such as to [`Menu::Credit`]
