@@ -55,7 +55,7 @@ pub fn spawn_tiled_map(
     asset_server: Res<AssetServer>,
 ) {
     let asset_path = match current_level.get() {
-        Level::Foo => "prototype.v4.tile-16x16.tmx",
+        Level::Foo => "prototype.v5.tile-16x16.tmx",
         Level::Bar => "map2.tile-16x16.tmx",
         Level::Baz => "map3.tile-16x16.tmx",
         Level::Qux => "map4.tile-16x16.tmx",
