@@ -21,7 +21,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(Update, update_sources.in_set(PausableSystems));
     app.add_systems(
         FixedUpdate,
-        (update_cools, update_projectiles).in_set(PausableSystems),
+        (update_cools, update_projectiles, restore_ammo).in_set(PausableSystems),
     );
 }
 
@@ -87,20 +87,69 @@ pub enum Due {
 ///     PLAYER_COLLIDER_RADIUS,
 ///     &anim_assets,
 /// ));
-/// ```s
+/// ```
+pub fn player_chakra<HostilityComponent: Component + Default>(
+    xy: Vec2,
+    direction: Dir2,
+    thrower_radius: f32,
+    anim_assets: &AnimationAssets,
+) -> impl Bundle {
+    let player_projectile_collider_radius: f32 = 2.;
+    let speed: f32 = 300.0;
+    // If the collider is not alway centered with respect to the entity this could be this or vice versa(diameter of thrower):
+    //             diameter of projectile               radius of Thrower
+    // (1.0e-3) -------------------------------|---------------------------------- Thrower
+    //    ^ tolerance
+    let new_xy =
+        (player_projectile_collider_radius + (2.0 * thrower_radius) + 1.0e-3) * direction + xy;
+    let chakram_projectile_life: f32 = 5.0; // seconds
+    (
+        Name::new("Chakra"),
+        Projectile {
+            direction,
+            dues: vec![
+                Due::BounceDown(5),
+                Due::Lifespan(Timer::from_seconds(
+                    chakram_projectile_life,
+                    TimerMode::Once,
+                )),
+            ],
+        },
+        HostilityComponent::default(),
+        LinearVelocity(speed * direction.as_vec2()),
+        LinearDamping(0.0),
+        AseAnimation {
+            animation: Animation::tag("Spin")
+                .with_repeat(AnimationRepeat::Loop)
+                .with_direction(AnimationDirection::Forward)
+                .with_speed(1.0),
+            aseprite: anim_assets.player.chakram.clone(),
+        },
+        Sprite::default(),
+        ScreenWrap,
+        LockedAxes::new().lock_rotation(),
+        Transform::from_xyz(new_xy.x, new_xy.y, PROJECTILE_Z_TRANSLATION),
+        RigidBody::Dynamic,
+        GravityScale(0.0),
+        Collider::circle(player_projectile_collider_radius),
+        Restitution::new(1.5),
+    )
+}
+
+#[allow(dead_code)]
 pub fn basic_projectile<HostilityComponent: Component + Default>(
     xy: Vec2,
     direction: Dir2,
     thrower_radius: f32,
     anim_assets: &AnimationAssets,
 ) -> impl Bundle {
-    let basic_projectile_collision_radius: f32 = 2.;
+    let basic_projectile_collider_radius: f32 = 2.;
     let speed: f32 = 300.0;
     //          radius of proj             radius of thrower
     //    pr ----------------------|---------------------------------- Thrower
     //    ^ spawned with room
 
-    let new_xy = (basic_projectile_collision_radius + thrower_radius + 1.0e-3) * direction + xy;
+    let new_xy = (basic_projectile_collider_radius + thrower_radius + 1.0e-3) * direction + xy;
     (
         Name::new("Basic Projectile"),
         Projectile {
@@ -123,23 +172,24 @@ pub fn basic_projectile<HostilityComponent: Component + Default>(
         Transform::from_xyz(new_xy.x, new_xy.y, PROJECTILE_Z_TRANSLATION),
         RigidBody::Dynamic,
         GravityScale(0.0),
-        Collider::circle(basic_projectile_collision_radius),
+        Collider::circle(basic_projectile_collider_radius),
         Restitution::new(1.0),
     )
 }
 
 /// Example of projectile that's gone when it bounces more than certain time
 /// TODO: visual using AnimationAssets
+#[allow(dead_code)]
 pub fn bounce_down_projectile<HostilityComponent: Component + Default>(
     xy: Vec2,
     direction: Dir2,
     thrower_radius: f32,
     anim_assets: &AnimationAssets,
 ) -> impl Bundle {
-    let bounce_down_projectile_collision_radius: f32 = 2.;
+    let bounce_down_projectile_collider_radius: f32 = 2.;
     let speed: f32 = 500.0;
     let new_xy =
-        (bounce_down_projectile_collision_radius + thrower_radius + 1.0e-3) * direction + xy;
+        (bounce_down_projectile_collider_radius + thrower_radius + 1.0e-3) * direction + xy;
     (
         Name::new("Bounce Down Projectile"),
         Projectile {
@@ -155,24 +205,25 @@ pub fn bounce_down_projectile<HostilityComponent: Component + Default>(
         Transform::from_xyz(new_xy.x, new_xy.y, PROJECTILE_Z_TRANSLATION),
         RigidBody::Dynamic,
         GravityScale(0.0),
-        Collider::circle(bounce_down_projectile_collision_radius),
+        Collider::circle(bounce_down_projectile_collider_radius),
         Restitution::new(1.0),
     )
 }
 
 /// Example of projectile that has lifespan
 /// TODO: visual using AnimationAssets
+#[allow(dead_code)]
 pub fn lifespan_projectile<HostilityComponent: Component + Default>(
     xy: Vec2,
     direction: Dir2,
     thrower_radius: f32,
     anim_assets: &AnimationAssets,
 ) -> impl Bundle {
-    let lifespan_projectile_collision_radius: f32 = 2.;
+    let lifespan_projectile_collider_radius: f32 = 2.;
     let lifespan_projectile_life: f32 = 5.0; // seconds
     let speed: f32 = 500.0;
 
-    let new_xy = (lifespan_projectile_collision_radius + thrower_radius + 1.0e-3) * direction + xy;
+    let new_xy = (lifespan_projectile_collider_radius + thrower_radius + 1.0e-3) * direction + xy;
     (
         Name::new("Life Span Projectile"),
         Projectile {
@@ -191,7 +242,7 @@ pub fn lifespan_projectile<HostilityComponent: Component + Default>(
         Transform::from_xyz(new_xy.x, new_xy.y, PROJECTILE_Z_TRANSLATION),
         RigidBody::Dynamic,
         GravityScale(0.0),
-        Collider::circle(lifespan_projectile_collision_radius),
+        Collider::circle(lifespan_projectile_collider_radius),
         Restitution::new(1.0),
     )
 }
@@ -200,23 +251,34 @@ pub fn lifespan_projectile<HostilityComponent: Component + Default>(
 fn update_projectiles(
     mut commands: Commands,
     time: Res<Time>,
-    player: Single<Entity, With<Player>>,
-    mut projectile_query: Query<(Entity, &mut Projectile)>,
+    projectile_query: Query<(Entity, &mut Projectile)>,
 ) {
+    let mut despawned = Vec::<Entity>::new();
     for (proj_entity, mut projectile) in projectile_query {
-        for mut due in projectile.dues.iter_mut() {
+        for due in projectile.dues.iter_mut() {
             use Due::*;
             match due {
                 Lifespan(timer) => {
-                    timer.tick(time.delta());
                     if timer.is_finished() {
-                        commands.entity(proj_entity).despawn();
+                        despawned.push(proj_entity);
+                        break;
+                    } else {
+                        timer.tick(time.delta());
                     }
                 }
-                BounceDown(count) => { /* nothing */ }
+                BounceDown(_count) => { /* nothing: this  handled at [`on_collision`] */ }
             }
         }
     }
+    despawned.iter().for_each(|&e| commands.entity(e).despawn());
+}
+
+fn restore_ammo(mut player: Single<&mut Player>, mut removed: RemovedComponents<Friendly>) {
+    if !removed.is_empty() {
+        let mut p = player.into_inner();
+        p.increment_ammo(removed.len());
+    }
+    removed.clear();
 }
 
 /// Player Projectile Cooldown - limit the projectiles player can have thrown at a time
@@ -256,6 +318,7 @@ fn update_cools(
 /// in the game Touhou.
 /// Not necessarily colliding
 /// [`Player`] can throw. [`Mob`] can throw.
+#[allow(dead_code)]
 #[derive(Component, Debug)]
 #[require(GameplayLifetime)]
 pub struct Source {

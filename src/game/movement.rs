@@ -12,6 +12,8 @@
 //! Note that the implementation used here is limited for demonstration
 //! purposes. If you want to move the player in a smoother way,
 //! consider using a [fixed timestep](https://github.com/bevyengine/bevy/blob/main/examples/movement/physics_in_fixed_timestep.rs).
+use std::ops::DerefMut;
+
 use crate::{
     AppSystems, PausableSystems,
     game::{
@@ -31,7 +33,6 @@ pub(super) fn plugin(app: &mut App) {
             apply_screen_wrap,
             apply_player_throw.run_if(input_just_pressed(KeyCode::Space)),
         )
-            .chain()
             .in_set(AppSystems::Update)
             .in_set(PausableSystems),
     );
@@ -80,40 +81,38 @@ fn on_collision(
                 commands.entity(proj_entity).despawn();
             } else if !player_query.contains(c1) {
                 // This part getting smelly
-                due_process(&mut commands, &proj_entity, &mut projectile);
-            }
-        } else if player_query.contains(c1)
-            && let Ok((_, _, _, has_hostile)) = projectile_query.get(c2)
-            && has_hostile
-        {
-            // Player got hit!
-            let mut player = player_query
-                .single_mut()
-                .expect("Player does not exist or more than one player");
-            player.life = player.life.saturating_sub(1);
-        }
-    }
-}
-
-fn due_process(commands: &mut Commands, proj_entity: &Entity, projectile: &mut Projectile) {
-    for due in projectile.dues.iter_mut() {
-        match due {
-            Due::BounceDown(count) => {
-                match count {
-                    1 => {
-                        // This goes to zero: remove
-                        commands.entity(*proj_entity).despawn();
-                    }
-                    0 => {
-                        //panic!("Bounce Down was not set correctly");
-                        commands.entity(*proj_entity).despawn(); // should not happen
-                    }
-                    _ => {
-                        *count = count.saturating_sub(1);
+                // Something else! (neither enemy nor player)
+                for due in projectile.dues.iter_mut() {
+                    match due {
+                        Due::BounceDown(count) => {
+                            match count {
+                                1 => {
+                                    // This goes to zero: remove and restore
+                                    commands.entity(proj_entity).despawn();
+                                }
+                                0 => {
+                                    //panic!("Bounce Down was not set correctly");
+                                    commands.entity(proj_entity).despawn(); // should not happen
+                                }
+                                _ => {
+                                    *count = count.saturating_sub(1);
+                                }
+                            }
+                        }
+                        _ => {}
                     }
                 }
             }
-            _ => {}
+        } else if player_query.contains(c1)
+            && let Ok((proj_entity, _, _, has_hostile)) = projectile_query.get(c2)
+        {
+            let mut player = player_query
+                .single_mut()
+                .expect("Player does not exist or more than one player");
+            if has_hostile {
+                player.life = player.life.saturating_sub(1);
+            }
+            commands.entity(proj_entity).despawn();
         }
     }
 }
@@ -127,13 +126,16 @@ fn apply_player_movement(mut movement_query: Query<(&MovementController, &mut Li
 fn apply_player_throw(
     mut commands: Commands,
     anim_assets: Res<AnimationAssets>,
-    player: Single<(Entity, &Transform, &Player), With<Cool>>,
+    mut player: Single<(Entity, &Transform, &mut Player), With<Cool>>,
     global_transform: Query<&GlobalTransform>,
     camera_query: Single<(&Camera, &GlobalTransform)>,
     window: Single<&Window>,
 ) {
-    let (player_entity, player_transform, player) = *player;
-    if let Ok(player_global_transform) = global_transform.get(player_entity) {
+    let (player_entity, player_transform, mut player) = player.into_inner();
+
+    if player.ammo != 0
+        && let Ok(player_global_transform) = global_transform.get(player_entity)
+    {
         let (x, y, _) = player_global_transform.translation().into(); // This may differ by the worldwrap
         let xy = Vec2::new(x, y);
 
@@ -148,12 +150,14 @@ fn apply_player_throw(
             player_transform.local_x().xy()
         };
         let direction = Dir2::new(dir_not_norm.normalize()).expect("It is not normalized");
-        commands.spawn(basic_projectile::<Friendly>(
+        commands.spawn(player_chakra::<Friendly>(
             xy,
             direction,
             PLAYER_COLLIDER_RADIUS,
             &anim_assets,
         ));
+        player.decrement_ammo(1);
+
         /*
         commands.spawn(bounce_down_projectile::<Friendly>(
             xy,
@@ -173,6 +177,7 @@ fn apply_player_throw(
         commands.entity(player_entity).remove::<Cool>();
         commands.spawn(Cool::new(player.cool));
     }
+    // if ammo is out nah.
 }
 
 /// This should be where the optimization takes place if the frame dropss
