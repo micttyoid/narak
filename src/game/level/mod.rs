@@ -10,7 +10,7 @@ use crate::{
     audio::music,
     game::{
         animation::AnimationAssets,
-        level::enemies::{basic_boss, basic_enemy},
+        level::enemies::{basic_boss, basic_enemy, eye_enemy, gate_boss},
         player::player,
     },
     menus::Menu,
@@ -116,9 +116,9 @@ pub fn spawn_level(
         Foo => {
             commands.entity(lev_entity).insert((children![
                 player(100.0, &anim_assets),
-                basic_enemy((80., -40.).into(), &anim_assets),
-                basic_enemy((-80., -40.).into(), &anim_assets),
-                basic_boss((0., 120.).into(), &anim_assets),
+                eye_enemy((80., -40.).into(), &anim_assets),
+                eye_enemy((-80., -40.).into(), &anim_assets),
+                gate_boss((0., 120.).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
                     DespawnOnExit(Menu::None), // To remove at ending such as to [`Menu::Credit`]

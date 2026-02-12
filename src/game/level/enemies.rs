@@ -42,52 +42,6 @@ pub struct EnemyAssets {
     pub boss2: Handle<Aseprite>,
 }
 
-/// An example of an enemy
-pub fn basic_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
-    let basic_enemy_collision_radius: f32 = 12.;
-    (
-        Name::new("Basic Enemy"),
-        Enemy { life: 5 }, // GDD "Enemies to have 1-5 lives then maybe?"
-        AseAnimation {
-            animation: Animation::tag("Idle")
-                .with_repeat(AnimationRepeat::Loop)
-                .with_direction(AnimationDirection::Forward)
-                .with_speed(1.0),
-            aseprite: anim_assets.enemies.eye_enemy.clone(),
-        },
-        Sprite::default(),
-        ScreenWrap,
-        LockedAxes::new().lock_rotation(), // To be resolved with later kinematic solution
-        Transform::from_xyz(xy.x, xy.y, ENEMY_Z_TRANSLATION),
-        RigidBody::Dynamic,
-        GravityScale(0.0),
-        Collider::circle(basic_enemy_collision_radius),
-    )
-}
-
-pub fn basic_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
-    (
-        Name::new("Basic Boss"),
-        Boss,
-        Enemy { life: 1 },
-        AseAnimation {
-            animation: Animation::tag("closed")
-                .with_repeat(AnimationRepeat::Loop)
-                .with_direction(AnimationDirection::Forward)
-                .with_speed(1.0),
-            aseprite: anim_assets.enemies.boss1.clone(),
-        },
-        Sprite::default(),
-        ScreenWrap,
-        LockedAxes::new().lock_rotation(), // To be resolved with later kinematic solution
-        Transform::from_xyz(xy.x, xy.y, ENEMY_Z_TRANSLATION).with_scale(Vec3::splat(4.0)),
-        RigidBody::Dynamic,
-        GravityScale(0.0),
-        Dominance(5), // dominates all dynamic bodies with a dominance lower than `5`.
-        Collider::rectangle(50., 50.),
-    )
-}
-
 fn check_enemy_death(
     mut enemy_query: Query<(Entity, &Enemy, &mut AseAnimation), Without<Boss>>,
     mut events: MessageReader<AnimationEvents>,
@@ -110,4 +64,96 @@ fn check_enemy_death(
             AnimationEvents::LoopCycleFinished(_entity) => (),
         };
     }
+}
+
+/// An example of an enemy
+pub fn basic_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
+    let basic_enemy_collision_radius: f32 = 12.;
+    (
+        Name::new("Basic Enemy"),
+        Enemy { life: 5 }, // GDD "Enemies to have 1-5 lives then maybe?"
+        AseAnimation {
+            animation: Animation::tag("Idle")
+                .with_repeat(AnimationRepeat::Loop)
+                .with_direction(AnimationDirection::Forward)
+                .with_speed(1.0),
+            aseprite: anim_assets.enemies.aseprite.clone(),
+        },
+        Sprite::default(),
+        ScreenWrap,
+        LockedAxes::new().lock_rotation(), // To be resolved with later kinematic solution
+        Transform::from_xyz(xy.x, xy.y, ENEMY_Z_TRANSLATION),
+        RigidBody::Dynamic,
+        GravityScale(0.0),
+        Collider::circle(basic_enemy_collision_radius),
+    )
+}
+
+pub fn eye_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
+    let basic_enemy_collision_radius: f32 = 12.;
+    (
+        Name::new("Basic Enemy"),
+        Enemy { life: 5 }, // GDD "Enemies to have 1-5 lives then maybe?"
+        AseAnimation {
+            animation: Animation::tag("Idle")
+                .with_repeat(AnimationRepeat::Loop)
+                .with_direction(AnimationDirection::Forward)
+                .with_speed(1.0),
+            aseprite: anim_assets.enemies.eye_enemy.clone(),
+        },
+        Sprite::default(),
+        ScreenWrap,
+        LockedAxes::new().lock_rotation(), // To be resolved with later kinematic solution
+        Transform::from_xyz(xy.x, xy.y, ENEMY_Z_TRANSLATION),
+        RigidBody::Dynamic,
+        GravityScale(0.0),
+        Collider::circle(basic_enemy_collision_radius),
+    )
+}
+
+pub fn gate_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
+    (
+        Name::new("Basic Boss"),
+        Boss,
+        Enemy { life: 1 },
+        AseAnimation {
+            animation: Animation::tag("closed")
+                .with_repeat(AnimationRepeat::Loop)
+                .with_direction(AnimationDirection::Forward)
+                .with_speed(1.0),
+            aseprite: anim_assets.enemies.boss1.clone(),
+        },
+        Sprite::default(),
+        ScreenWrap,
+        LockedAxes::new().lock_rotation(), // To be resolved with later kinematic solution
+        Transform::from_xyz(xy.x, xy.y, ENEMY_Z_TRANSLATION).with_scale(Vec3::splat(4.0)),
+        RigidBody::Dynamic,
+        GravityScale(0.0),
+        Dominance(5), // dominates all dynamic bodies with a dominance lower than `5`.
+        Collider::rectangle(50., 50.),
+    )
+}
+
+pub fn basic_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
+    let basic_enemy_collision_radius: f32 = 12.;
+    (
+        Name::new("Basic Boss"),
+        Boss,
+        Enemy { life: 1 },
+        AseAnimation {
+            animation: Animation::tag("Idle")
+                .with_repeat(AnimationRepeat::Loop)
+                .with_direction(AnimationDirection::Forward)
+                .with_speed(2.0),
+            aseprite: anim_assets.enemies.aseprite.clone(),
+        },
+        Sprite::default(),
+        ScreenWrap,
+        LockedAxes::new().lock_rotation(), // To be resolved with later kinematic solution
+        Transform::from_xyz(xy.x, xy.y, ENEMY_Z_TRANSLATION),
+        RigidBody::Dynamic,
+        GravityScale(0.0),
+        Dominance(5), // dominates all dynamic bodies with a dominance lower than `5`.
+        Collider::circle(basic_enemy_collision_radius),
+    )
 }
