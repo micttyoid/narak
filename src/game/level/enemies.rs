@@ -157,7 +157,9 @@ pub struct ShootingEnemy {
 
 #[derive(Debug, Clone)]
 pub enum ShootingPattern {
-    AtPlayer,
+    Straight,
+    Triple,
+    Cross,
 }
 
 fn enemy_shooting_system(
@@ -179,10 +181,28 @@ fn enemy_shooting_system(
             if shooter.cooldown_timer.just_finished() {
                 let enemy_pos = enemy_transform.translation.xy();
                 let enemy_radius = 12.0; // Should match enemy collider radius
+                let dir = (player_pos - enemy_pos).normalize();
+                let base = Dir2::new(dir).unwrap_or(Dir2::NEG_Y);
                 let directions = match &shooter.shooting_pattern {
-                    ShootingPattern::AtPlayer => {
-                        let dir = (player_pos - enemy_pos).normalize();
-                        vec![Dir2::new(dir).unwrap_or(Dir2::NEG_Y)]
+                    ShootingPattern::Straight => {
+                        vec![base]
+                    }
+                    ShootingPattern::Triple => {
+                        let rhs = dir.rotate(Vec2::from_angle(20.0));
+                        let lhs = dir.rotate(Vec2::from_angle(-20.0));
+                        vec![
+                            base,
+                            Dir2::new(rhs).unwrap_or(Dir2::Y),
+                            Dir2::new(lhs).unwrap_or(Dir2::Y),
+                        ]
+                    }
+                    ShootingPattern::Cross => {
+                        let perp = dir.perp();
+                        vec![
+                            base,
+                            Dir2::new(perp).unwrap_or(Dir2::Y),
+                            Dir2::new(-perp).unwrap_or(Dir2::NEG_Y),
+                        ]
                     }
                 };
                 for direction in directions {
@@ -220,7 +240,7 @@ pub fn basic_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
         Collider::circle(basic_enemy_collision_radius),
         ShootingEnemy {
             cooldown_timer: Timer::from_seconds(2.0, TimerMode::Repeating),
-            shooting_pattern: ShootingPattern::AtPlayer,
+            shooting_pattern: ShootingPattern::Straight,
             shooting_range: 100.0,
         },
     )
@@ -247,8 +267,8 @@ pub fn eye_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
         Collider::circle(basic_enemy_collision_radius),
         ShootingEnemy {
             cooldown_timer: Timer::from_seconds(2.0, TimerMode::Repeating),
-            shooting_pattern: ShootingPattern::AtPlayer,
-            shooting_range: 100.0,
+            shooting_pattern: ShootingPattern::Cross,
+            shooting_range: 300.0,
         },
     )
 }
@@ -274,6 +294,11 @@ pub fn gate_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
         GravityScale(0.0),
         Dominance(5), // dominates all dynamic bodies with a dominance lower than `5`.
         Collider::rectangle(50., 50.),
+        ShootingEnemy {
+            cooldown_timer: Timer::from_seconds(2.0, TimerMode::Repeating),
+            shooting_pattern: ShootingPattern::Triple,
+            shooting_range: 300.0,
+        },
     )
 }
 
