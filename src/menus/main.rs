@@ -6,11 +6,7 @@ use crate::{
     asset_tracking::ResourceHandles,
     menus::Menu,
     screens::Screen,
-    theme::{
-        interaction::InteractionAssets,
-        palette::{BACKGROUND_DARK, SIDEBAR_BACKGROUND},
-        widget,
-    },
+    theme::{interaction::InteractionAssets, palette::BACKGROUND_DARK, widget},
 };
 
 pub(super) fn plugin(app: &mut App) {

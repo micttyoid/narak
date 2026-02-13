@@ -33,7 +33,9 @@ pub(super) fn plugin(app: &mut App) {
 #[require(Collider)]
 #[reflect(Component)]
 pub struct Player {
+    pub max_ammo: usize,
     pub ammo: usize,
+    pub max_life: usize,
     pub life: usize,
     pub cool: f32, // throw cool time. every [`cool`] second, the player can throw
 }
@@ -41,8 +43,10 @@ pub struct Player {
 impl Default for Player {
     fn default() -> Self {
         Self {
+            max_life: 3,
             life: 3, // "3 lives on player?"
             cool: 0.5,
+            max_ammo: 3,
             ammo: 3,
         }
     }
