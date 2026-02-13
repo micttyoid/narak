@@ -1,4 +1,5 @@
 pub mod enemies;
+pub mod gameplay_ui;
 pub mod projectiles;
 
 use avian2d::prelude::{Physics, PhysicsTime};
@@ -20,7 +21,7 @@ use crate::{
 pub(super) fn plugin(app: &mut App) {
     app.load_resource::<LevelAssets>()
         .init_state::<Level>()
-        .add_plugins((enemies::plugin, projectiles::plugin));
+        .add_plugins((enemies::plugin, projectiles::plugin, gameplay_ui::plugin));
 }
 
 /// GDD "pre defined multiple maps/levels(maybe 4-5?)"
@@ -84,6 +85,10 @@ impl Level {
 pub struct LevelAssets {
     #[dependency]
     music: Handle<AudioSource>,
+    #[dependency]
+    ui_assets: Handle<Image>,
+    #[dependency]
+    aim_cursor: Handle<Image>,
 }
 
 impl FromWorld for LevelAssets {
@@ -91,6 +96,8 @@ impl FromWorld for LevelAssets {
         let assets = world.resource::<AssetServer>();
         Self {
             music: assets.load("audio/music/Fluffing A Duck.ogg"),
+            ui_assets: assets.load("textures/props/gameplay_ui.png"),
+            aim_cursor: assets.load("textures/props/cursor.png"),
         }
     }
 }
