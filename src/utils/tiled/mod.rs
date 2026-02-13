@@ -57,7 +57,7 @@ pub fn spawn_tiled_map(
     let asset_path = match current_level.get() {
         Level::Tutorial => "level0.tmx",
         Level::Gates => "level1.tmx",
-        Level::Maya => "map2.tile-16x16.tmx",
+        Level::Maya => "level2.tmx",
         Level::Mura => "map3.tile-16x16.tmx",
         Level::Narak => "map4.tile-16x16.tmx",
     };
