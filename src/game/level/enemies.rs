@@ -1,6 +1,7 @@
-use avian2d::prelude::*;
+use avian2d::{math::TAU, prelude::*};
 use bevy::prelude::*;
 use bevy_aseprite_ultra::prelude::*;
+use rand::Rng;
 
 use crate::{
     PausableSystems,
@@ -11,7 +12,10 @@ use crate::{
 pub const ENEMY_Z_TRANSLATION: f32 = PLAYER_Z_TRANSLATION;
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_systems(Update, (check_enemy_death).in_set(PausableSystems));
+    app.add_systems(
+        Update,
+        (check_enemy_death, update_moves).in_set(PausableSystems),
+    );
 }
 
 /// "1 boss per level, if boss gets life zero, auto move on?" "yes"
@@ -24,13 +28,86 @@ pub struct Boss;
 #[require(GameplayLifetime, Collider)]
 pub struct Enemy {
     pub life: usize,
+    pub moves: Vec<Move>,
+}
+
+fn update_moves(
+    time: Res<Time>,
+    enemy_query: Query<(&mut LinearVelocity, &mut Enemy), Without<Boss>>,
+) {
+    let d = time.delta();
+    for (mut velocity, mut enemy) in enemy_query {
+        let mut is_pop = false;
+        if let Some(m) = enemy.moves.last_mut() {
+            match m {
+                Move::UnitVelocity(v, timer) => {
+                    if timer.is_finished() {
+                        is_pop = true;
+                        *velocity = LinearVelocity::ZERO;
+                    } else {
+                        timer.tick(d);
+                        *velocity = *v;
+                    }
+                } //_ => {},
+            }
+        } else {
+            enemy.random_linear_moves(); // refill
+        }
+        enemy.moves.pop_if(|_| is_pop);
+    }
 }
 
 impl Default for Enemy {
     fn default() -> Self {
         Self {
             life: 1, // GDD "Enemies to have 1-5 lives then maybe?"
+            moves: Vec::<Move>::new(),
         }
+    }
+}
+
+impl Enemy {
+    pub const RANDOM_MAX_SPEED: f32 = 65.0; // 101
+    pub const RANDOM_MIN_SPEED: f32 = 15.0;
+    pub const RANDOM_MAX_TIME: f32 = 2.0;
+    pub const RANDOM_MIN_TIME: f32 = 0.5;
+    pub const RANDOM_MAX_MOVES: usize = 10;
+    pub const RANDOM_MIN_MOVES: usize = 2;
+
+    pub fn new_random(life: usize) -> Self {
+        Self {
+            life,
+            moves: Self::get_random_linear_moves(),
+        }
+    }
+
+    pub fn random_linear_moves(&mut self) {
+        self.moves.append(&mut Self::get_random_linear_moves());
+    }
+
+    pub fn get_random_linear_moves() -> Vec<Move> {
+        let mut rng = rand::rng();
+        let n = rng.random_range(Self::RANDOM_MIN_MOVES..=Self::RANDOM_MAX_MOVES);
+        Self::get_random_linear_n_moves(n)
+    }
+
+    pub fn get_random_linear_n_moves(n: usize) -> Vec<Move> {
+        let mut ms = Vec::<Move>::new();
+        (0..n).for_each(|_| ms.push(Self::get_random_move_unit_velocity()));
+        ms
+    }
+
+    pub fn get_random_move_unit_velocity() -> Move {
+        let mut rng = rand::rng();
+        let mag: f32 = rng.random_range(Self::RANDOM_MIN_SPEED..=Self::RANDOM_MAX_SPEED);
+        let ang: f32 = rng.random_range(0.0..TAU); // Repetitive bikeshed at the math channel
+        Move::UnitVelocity(
+            LinearVelocity(mag * Vec2::new(ang.cos(), ang.sin())),
+            Timer::from_seconds(
+                rng.random_range(Self::RANDOM_MIN_TIME..=Self::RANDOM_MAX_TIME),
+                TimerMode::Once,
+            ),
+        )
     }
 }
 
@@ -71,7 +148,7 @@ pub fn basic_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     let basic_enemy_collision_radius: f32 = 12.;
     (
         Name::new("Basic Enemy"),
-        Enemy { life: 5 }, // GDD "Enemies to have 1-5 lives then maybe?"
+        Enemy::new_random(5), // GDD "Enemies to have 1-5 lives then maybe?"
         AseAnimation {
             animation: Animation::tag("Idle")
                 .with_repeat(AnimationRepeat::Loop)
@@ -93,7 +170,7 @@ pub fn eye_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     let basic_enemy_collision_radius: f32 = 12.;
     (
         Name::new("Basic Enemy"),
-        Enemy { life: 5 }, // GDD "Enemies to have 1-5 lives then maybe?"
+        Enemy::new_random(5), // GDD "Enemies to have 1-5 lives then maybe?"
         AseAnimation {
             animation: Animation::tag("Idle")
                 .with_repeat(AnimationRepeat::Loop)
@@ -115,7 +192,7 @@ pub fn gate_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     (
         Name::new("Basic Boss"),
         Boss,
-        Enemy { life: 1 },
+        Enemy::new_random(1),
         AseAnimation {
             animation: Animation::tag("closed")
                 .with_repeat(AnimationRepeat::Loop)
@@ -139,7 +216,7 @@ pub fn basic_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     (
         Name::new("Basic Boss"),
         Boss,
-        Enemy { life: 1 },
+        Enemy::new_random(1),
         AseAnimation {
             animation: Animation::tag("Idle")
                 .with_repeat(AnimationRepeat::Loop)
@@ -156,4 +233,13 @@ pub fn basic_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
         Dominance(5), // dominates all dynamic bodies with a dominance lower than `5`.
         Collider::circle(basic_enemy_collision_radius),
     )
+}
+
+// It'll do so for "unit" time
+#[derive(Clone)]
+pub enum Move {
+    UnitVelocity(LinearVelocity, Timer),
+    // UnitWeirdMotion,
+    // UnitDance,
+    // UnitPathfinding,
 }
