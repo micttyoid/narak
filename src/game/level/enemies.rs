@@ -205,6 +205,7 @@ fn enemy_shooting_system(
                             base,
                             Dir2::new(perp).unwrap_or(Dir2::Y),
                             Dir2::new(-perp).unwrap_or(Dir2::NEG_Y),
+                            Dir2::new(-dir).unwrap_or(Dir2::Y),
                         ]
                     }
                 };

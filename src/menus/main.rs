@@ -47,7 +47,7 @@ fn spawn_main_menu(mut commands: Commands, assets: Res<InteractionAssets>) {
                 BackgroundColor(BACKGROUND_DARK.with_alpha(0.6)),
                 #[cfg(not(target_family = "wasm"))]
                 children![
-                    widget::header("Swapn Maya"),
+                    widget::header("Narak"),
                     widget::button("Play", enter_loading_or_gameplay_screen),
                     widget::button("Settings", open_settings_menu),
                     widget::button("Credits", open_credits_menu),
@@ -55,7 +55,7 @@ fn spawn_main_menu(mut commands: Commands, assets: Res<InteractionAssets>) {
                 ],
                 #[cfg(target_family = "wasm")]
                 children![
-                    widget::header("Swapn Maya"),
+                    widget::header("Narak"),
                     widget::button("Play", enter_loading_or_gameplay_screen),
                     widget::button("Settings", open_settings_menu),
                     widget::button("Credits", open_credits_menu),
