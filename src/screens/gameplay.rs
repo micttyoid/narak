@@ -84,7 +84,7 @@ fn check_boss_and_player(
             }
             if (*player).life == 0 {
                 // TODO: lost
-                next_menu.set(Menu::Credits);
+                next_menu.set(Menu::GameOver);
             }
         }
         Err(_) => {
