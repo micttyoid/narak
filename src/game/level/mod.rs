@@ -11,7 +11,7 @@ use crate::{
     audio::music,
     game::{
         animation::AnimationAssets,
-        level::enemies::{basic_boss, basic_enemy, eye_boss, eye_enemy, gate_boss},
+        level::enemies::{basic_enemy, elephant_boss, eye_boss, eye_enemy, gate_boss, son_boss},
         player::player,
     },
     menus::Menu,
@@ -149,7 +149,7 @@ pub fn spawn_level(
                 player(100.0, &anim_assets),
                 basic_enemy((-70., 20.).into(), &anim_assets),
                 basic_enemy((-60., 0.).into(), &anim_assets),
-                basic_boss((140., 40.).into(), &anim_assets),
+                elephant_boss((140., 40.).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
                     DespawnOnExit(Menu::None),
@@ -162,7 +162,7 @@ pub fn spawn_level(
                 player(100.0, &anim_assets),
                 basic_enemy((-70., 20.).into(), &anim_assets),
                 basic_enemy((-60., 0.).into(), &anim_assets),
-                basic_boss((140., 40.).into(), &anim_assets),
+                son_boss((140., 40.).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
                     DespawnOnExit(Menu::None),

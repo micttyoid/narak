@@ -104,7 +104,7 @@ pub fn player_chakra<HostilityComponent: Component + Default>(
     // Calculate how far the capsule extends in the firing direction
     let dir_vec = direction.as_vec2();
     let extent_in_direction = (thrower_height * dir_vec.y.abs()) + thrower_radius;
-
+    // TODO: needs to be fixed according to player capsule collidor
     let new_xy =
         (player_projectile_collider_radius + (extent_in_direction) + 1.0e-3) * direction + xy;
     let chakram_projectile_life: f32 = 5.0; // seconds

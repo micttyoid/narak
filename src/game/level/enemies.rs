@@ -122,6 +122,8 @@ pub struct EnemyAssets {
     pub eye_enemy: Handle<Aseprite>,
     pub boss1: Handle<Aseprite>,
     pub boss2: Handle<Aseprite>,
+    pub boss3: Handle<Aseprite>,
+    pub boss4: Handle<Aseprite>,
     pub bullet: Handle<Image>,
 }
 
@@ -328,6 +330,57 @@ pub fn eye_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     )
 }
 
+// boss 3
+pub fn elephant_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
+    let basic_enemy_collision_radius: f32 = 12.;
+    (
+        Name::new("Elephant Boss"),
+        Boss,
+        Enemy::new_random(1),
+        AseAnimation {
+            animation: Animation::tag("Idle")
+                .with_repeat(AnimationRepeat::Loop)
+                .with_direction(AnimationDirection::Forward)
+                .with_speed(1.0),
+            aseprite: anim_assets.enemies.boss3.clone(),
+        },
+        Sprite::default(),
+        ScreenWrap,
+        LockedAxes::new().lock_rotation(), // To be resolved with later kinematic solution
+        Transform::from_xyz(xy.x, xy.y, ENEMY_Z_TRANSLATION),
+        RigidBody::Dynamic,
+        GravityScale(0.0),
+        Dominance(5), // dominates all dynamic bodies with a dominance lower than `5`.
+        Collider::circle(basic_enemy_collision_radius),
+    )
+}
+
+// boss 4
+pub fn son_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
+    let basic_enemy_collision_radius: f32 = 12.;
+    (
+        Name::new("Son Boss"),
+        Boss,
+        Enemy::new_random(1),
+        AseAnimation {
+            animation: Animation::tag("Idle")
+                .with_repeat(AnimationRepeat::Loop)
+                .with_direction(AnimationDirection::Forward)
+                .with_speed(1.0),
+            aseprite: anim_assets.enemies.boss4.clone(),
+        },
+        Sprite::default(),
+        ScreenWrap,
+        LockedAxes::new().lock_rotation(), // To be resolved with later kinematic solution
+        Transform::from_xyz(xy.x, xy.y, ENEMY_Z_TRANSLATION),
+        RigidBody::Dynamic,
+        GravityScale(0.0),
+        Dominance(5), // dominates all dynamic bodies with a dominance lower than `5`.
+        Collider::circle(basic_enemy_collision_radius),
+    )
+}
+
+#[allow(dead_code)]
 pub fn basic_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     let basic_enemy_collision_radius: f32 = 12.;
     (
