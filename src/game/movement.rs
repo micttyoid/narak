@@ -74,23 +74,25 @@ fn on_collision(
         let c1 = msg.collider1;
         let c2 = msg.collider2;
 
+        let mut is_c1_projectile: Option<bool> = None;
+        let mut is_c2_projectile: Option<bool> = None;
+
         // player/enemy with projectile
-        if on_collision_player(&mut commands, &mut enemy_query, &mut player_query, &mut projectile_query, &c1, &c2) 
-        || on_collision_player(&mut commands, &mut enemy_query, &mut player_query, &mut projectile_query, &c2, &c1)
-        || on_collision_enemy(&mut commands, &mut enemy_query, &mut player_query, &mut projectile_query, &c1, &c2) 
-        || on_collision_enemy(&mut commands, &mut enemy_query, &mut player_query, &mut projectile_query, &c2, &c1) {
+        if on_collision_player(&mut commands, &mut enemy_query, &mut player_query, &mut projectile_query, &c1, &c2, &mut is_c2_projectile)
+        || on_collision_player(&mut commands, &mut enemy_query, &mut player_query, &mut projectile_query, &c2, &c1, &mut is_c1_projectile)
+        || on_collision_enemy(&mut commands, &mut enemy_query, &mut player_query, &mut projectile_query, &c1, &c2, &mut is_c2_projectile)
+        || on_collision_enemy(&mut commands, &mut enemy_query, &mut player_query, &mut projectile_query, &c2, &c1, &mut is_c1_projectile)
+        {
             continue;
         }
 
-        // not really optimal by this, but i like it
-        match (projectile_query.contains(c1), projectile_query.contains(c2)) {
+        match (
+            is_c1_projectile.unwrap_or(projectile_query.contains(c1)),
+            is_c2_projectile.unwrap_or(projectile_query.contains(c2)),
+        ) {
             (true, true) => {/* projectile vs projectile */}
-            (true, false) => {
-                on_collision_projectile_with_something_else(&mut commands, &mut projectile_query, &c1);
-            }
-            (false, true) => {
-                on_collision_projectile_with_something_else(&mut commands, &mut projectile_query, &c2);
-            }
+            (true, false) => on_collision_projectile_with_something_else(&mut commands, &mut projectile_query, &c1),
+            (false, true) =>  on_collision_projectile_with_something_else(&mut commands, &mut projectile_query, &c2),
             (false, false) => {/* else vs else */}
         }
     }
@@ -104,18 +106,22 @@ fn on_collision_player(
     projectile_query: &mut Query<(Entity, &mut Projectile, Has<Friendly>, Has<Hostile>)>,
     c1: &Entity,
     c2: &Entity,
+    is_c2_projectile: &mut Option<bool>,
 ) -> bool {
     // c1 is player and c2 is projectile
-    if player_query.contains(*c1)
-        && let Ok((proj_entity, _, _, has_hostile)) = projectile_query.get(*c2)
-    {
-        let mut player = player_query
-            .single_mut()
-            .expect("Player does not exist or more than one player");
-        if has_hostile {
-            player.life = player.life.saturating_sub(1);
+    if player_query.contains(*c1) {
+        if let Ok((proj_entity, _, _, has_hostile)) = projectile_query.get(*c2) {
+            let mut player = player_query
+                .single_mut()
+                .expect("Player does not exist or more than one player");
+            if has_hostile {
+                player.life = player.life.saturating_sub(1);
+            }
+            commands.entity(proj_entity).despawn();
+            *is_c2_projectile = Some(true);
+        } else {
+            *is_c2_projectile = Some(false);
         }
-        commands.entity(proj_entity).despawn();
         return true;
     }
     false
@@ -129,17 +135,21 @@ fn on_collision_enemy(
     projectile_query: &mut Query<(Entity, &mut Projectile, Has<Friendly>, Has<Hostile>)>,
     c1: &Entity,
     c2: &Entity,
+    is_c2_projectile: &mut Option<bool>,
 ) -> bool {
     // c1 is enemy and c2 is projectile
-    if let Ok((_enemy_entity, mut enemy)) = enemy_query.get_mut(*c1)
-        && let Ok((proj_entity, _, has_friendly, _)) = projectile_query.get(*c2)
-    {
-        if has_friendly {
-            // Enemy got hit!
-            enemy.life = enemy.life.saturating_sub(1);
+    if let Ok((_enemy_entity, mut enemy)) = enemy_query.get_mut(*c1) {
+        if let Ok((proj_entity, _, has_friendly, _)) = projectile_query.get(*c2) {
+            if has_friendly {
+                // Enemy got hit!
+                enemy.life = enemy.life.saturating_sub(1);
+            }
+            // nothing for enemy bullet to enemy(drain)
             commands.entity(proj_entity).despawn();
+            *is_c2_projectile = Some(true);
+        } else {
+            *is_c2_projectile = Some(false);
         }
-        // nothing for enemy bullet to enemy
         return true;
     }
     false
