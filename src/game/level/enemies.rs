@@ -1,4 +1,7 @@
-use avian2d::{math::TAU, prelude::*};
+use avian2d::{
+    math::{PI, TAU},
+    prelude::*,
+};
 use bevy::prelude::*;
 use bevy_aseprite_ultra::prelude::*;
 use rand::Rng;
@@ -163,6 +166,8 @@ pub enum ShootingPattern {
     Straight,
     Triple,
     Cross,
+    Spread,
+    Octagon,
 }
 
 fn enemy_shooting_system(
@@ -185,14 +190,15 @@ fn enemy_shooting_system(
                 let enemy_pos = enemy_transform.translation.xy();
                 let enemy_radius = 12.0; // Should match enemy collider radius
                 let dir = (player_pos - enemy_pos).normalize();
+                let perp = dir.perp();
                 let base = Dir2::new(dir).unwrap_or(Dir2::NEG_Y);
                 let directions = match &shooter.shooting_pattern {
                     ShootingPattern::Straight => {
                         vec![base]
                     }
                     ShootingPattern::Triple => {
-                        let rhs = dir.rotate(Vec2::from_angle(20.0));
-                        let lhs = dir.rotate(Vec2::from_angle(-20.0));
+                        let rhs = dir.rotate(Vec2::from_angle(10.0_f32.to_radians()));
+                        let lhs = dir.rotate(Vec2::from_angle(-10.0_f32.to_radians()));
                         vec![
                             base,
                             Dir2::new(rhs).unwrap_or(Dir2::Y),
@@ -200,12 +206,37 @@ fn enemy_shooting_system(
                         ]
                     }
                     ShootingPattern::Cross => {
-                        let perp = dir.perp();
+                        // 4 bullets at 90-degree intervals
                         vec![
                             base,
                             Dir2::new(perp).unwrap_or(Dir2::Y),
                             Dir2::new(-perp).unwrap_or(Dir2::NEG_Y),
                             Dir2::new(-dir).unwrap_or(Dir2::Y),
+                        ]
+                    }
+                    ShootingPattern::Spread => {
+                        // 5 bullets spread across 90 degrees (-45 to +45)
+                        let angles = [-PI / 4.0, -PI / 8.0, 0.0, PI / 8.0, PI / 4.0];
+                        angles
+                            .iter()
+                            .map(|&angle| {
+                                let rotated = dir.rotate(Vec2::from_angle(angle));
+                                Dir2::new(rotated).unwrap_or(Dir2::Y)
+                            })
+                            .collect()
+                    }
+                    ShootingPattern::Octagon => {
+                        let diag1 = dir.rotate(Vec2::from_angle(PI / 4.0));
+                        let diag2 = dir.rotate(Vec2::from_angle(-PI / 4.0));
+                        vec![
+                            base,
+                            Dir2::new(perp).unwrap_or(Dir2::X),
+                            Dir2::new(-dir).unwrap_or(Dir2::NEG_Y),
+                            Dir2::new(-perp).unwrap_or(Dir2::NEG_X),
+                            Dir2::new(diag1).unwrap_or(Dir2::Y),
+                            Dir2::new(diag2).unwrap_or(Dir2::Y),
+                            Dir2::new(-diag1).unwrap_or(Dir2::NEG_Y),
+                            Dir2::new(-diag2).unwrap_or(Dir2::NEG_Y),
                         ]
                     }
                 };
@@ -270,9 +301,9 @@ pub fn eye_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
         GravityScale(0.0),
         Collider::circle(basic_enemy_collision_radius),
         ShootingEnemy {
-            cooldown_timer: Timer::from_seconds(4.0, TimerMode::Repeating),
-            shooting_pattern: ShootingPattern::Cross,
-            shooting_range: 200.0,
+            cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
+            shooting_pattern: ShootingPattern::Triple,
+            shooting_range: 400.0,
         },
     )
 }
