@@ -5,6 +5,7 @@ mod game_over;
 mod main;
 mod pause;
 mod settings;
+mod win;
 
 use bevy::prelude::*;
 
@@ -17,6 +18,7 @@ pub(super) fn plugin(app: &mut App) {
         settings::plugin,
         pause::plugin,
         game_over::plugin,
+        win::plugin,
     ));
 }
 
@@ -29,4 +31,5 @@ pub enum Menu {
     Settings,
     Pause,
     GameOver,
+    Win,
 }

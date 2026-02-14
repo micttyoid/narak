@@ -11,18 +11,15 @@ use crate::{
 };
 
 pub(super) fn plugin(app: &mut App) {
-    app.load_resource::<GameOverAssets>();
-    app.add_systems(
-        OnEnter(Menu::GameOver),
-        (spawn_game_over, start_game_over_music),
-    );
+    app.load_resource::<WinAssets>();
+    app.add_systems(OnEnter(Menu::Win), (spawn_win, start_win_music));
 }
 
-fn spawn_game_over(mut cmd: Commands, assets: Res<InteractionAssets>) {
+fn spawn_win(mut cmd: Commands, assets: Res<InteractionAssets>) {
     cmd.spawn((
-        widget::ui_root("Game Over Menu"),
+        widget::ui_root("All cleared"),
         GlobalZIndex(2),
-        DespawnOnExit(Menu::GameOver),
+        DespawnOnExit(Menu::Win),
         children![
             (
                 Name::new("Background Image"),
@@ -61,25 +58,25 @@ fn spawn_game_over(mut cmd: Commands, assets: Res<InteractionAssets>) {
 
 #[derive(Resource, Asset, Clone, Reflect)]
 #[reflect(Resource)]
-struct GameOverAssets {
+struct WinAssets {
     #[dependency]
     music: Handle<AudioSource>,
 }
 
-impl FromWorld for GameOverAssets {
+impl FromWorld for WinAssets {
     fn from_world(world: &mut World) -> Self {
         let assets = world.resource::<AssetServer>();
         Self {
-            music: assets.load("audio/sound_effects/ui/lose.ogg"),
+            music: assets.load("audio/sound_effects/ui/win.ogg"),
         }
     }
 }
 
-fn start_game_over_music(mut commands: Commands, game_over_assets: Res<GameOverAssets>) {
+fn start_win_music(mut commands: Commands, win_assets: Res<WinAssets>) {
     commands.spawn((
-        Name::new("Game Over Music"),
-        DespawnOnExit(Menu::GameOver),
-        music(game_over_assets.music.clone()),
+        Name::new("Credits Music"),
+        DespawnOnExit(Menu::Win),
+        music(win_assets.music.clone()),
     ));
 }
 
