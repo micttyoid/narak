@@ -1,4 +1,7 @@
-use avian2d::{math::TAU, prelude::*};
+use avian2d::{
+    math::{PI, TAU},
+    prelude::*,
+};
 use bevy::prelude::*;
 use bevy_aseprite_ultra::prelude::*;
 use rand::Rng;
@@ -12,6 +15,7 @@ use crate::{
         player::{PLAYER_Z_TRANSLATION, Player},
     },
     screens::gameplay::GameplayLifetime,
+    utils::safe_dir,
 };
 
 pub const ENEMY_Z_TRANSLATION: f32 = PLAYER_Z_TRANSLATION;
@@ -34,6 +38,9 @@ pub struct Boss;
 pub struct Enemy {
     pub life: usize,
     pub moves: Vec<Move>,
+    pub attacks: Vec<EnemyAttack>,
+    pub shooting_range: f32,
+    pub attack_idx: usize,
 }
 
 fn update_moves(
@@ -67,6 +74,9 @@ impl Default for Enemy {
         Self {
             life: 1, // GDD "Enemies to have 1-5 lives then maybe?"
             moves: Vec::<Move>::new(),
+            attacks: Vec::<EnemyAttack>::new(),
+            shooting_range: 100.0,
+            attack_idx: 0,
         }
     }
 }
@@ -83,6 +93,9 @@ impl Enemy {
         Self {
             life,
             moves: Self::get_random_linear_moves(),
+            attacks: Vec::new(),
+            shooting_range: 100.0,
+            attack_idx: 0,
         }
     }
 
@@ -113,6 +126,15 @@ impl Enemy {
                 TimerMode::Once,
             ),
         )
+    }
+
+    pub fn with_attack(mut self, attack: EnemyAttack) -> Self {
+        self.attacks.push(attack);
+        self
+    }
+    pub fn with_shooting_range(mut self, range: f32) -> Self {
+        self.shooting_range = range;
+        self
     }
 }
 
@@ -152,24 +174,27 @@ fn check_enemy_death(
 }
 
 #[derive(Component, Debug)]
-pub struct ShootingEnemy {
+pub struct EnemyAttack {
     pub cooldown_timer: Timer,
-    pub shooting_pattern: ShootingPattern,
-    pub shooting_range: f32,
+    pub duration: Timer,
+    pub shooting_pattern: Vec<ShootingPattern>,
 }
 
 #[derive(Debug, Clone)]
 pub enum ShootingPattern {
     Straight,
-    Triple,
-    Cross,
+    Spread { count: usize, arc: f32 },
+    Ring { count: usize },
+    Flank { angle: f32 },
+    Random { count: usize, arc: f32 },
 }
 
+// maybe simplify this later
 fn enemy_shooting_system(
     mut cmd: Commands,
     time: Res<Time>,
     player_query: Query<&Transform, With<Player>>,
-    mut enemy_query: Query<(&Transform, &mut ShootingEnemy), Without<Player>>,
+    mut enemy_query: Query<(&Transform, &mut Enemy), Without<Player>>,
     anim_assets: Res<AnimationAssets>,
 ) {
     let Ok(player_transform) = player_query.single() else {
@@ -177,38 +202,31 @@ fn enemy_shooting_system(
     };
     let player_pos = player_transform.translation.xy();
     for (enemy_transform, mut shooter) in enemy_query.iter_mut() {
+        if shooter.attacks.is_empty() {
+            continue;
+        }
         let enemy_pos = enemy_transform.translation.xy();
         let distance_to_player = player_pos.distance(enemy_pos);
         if distance_to_player <= shooter.shooting_range {
-            shooter.cooldown_timer.tick(time.delta());
-            if shooter.cooldown_timer.just_finished() {
+            let idx = shooter.attack_idx % shooter.attacks.len();
+            let current_attack = &mut shooter.attacks[idx];
+            // check duration of current attack - reset if finished
+            current_attack.duration.tick(time.delta());
+            if current_attack.duration.is_finished() {
+                current_attack.duration.reset();
+                shooter.attack_idx = (idx + 1) % shooter.attacks.len();
+                continue;
+            }
+            // shoot on cooldown
+            current_attack.cooldown_timer.tick(time.delta());
+            if current_attack.cooldown_timer.just_finished() {
                 let enemy_pos = enemy_transform.translation.xy();
                 let enemy_radius = 12.0; // Should match enemy collider radius
                 let dir = (player_pos - enemy_pos).normalize();
-                let base = Dir2::new(dir).unwrap_or(Dir2::NEG_Y);
-                let directions = match &shooter.shooting_pattern {
-                    ShootingPattern::Straight => {
-                        vec![base]
-                    }
-                    ShootingPattern::Triple => {
-                        let rhs = dir.rotate(Vec2::from_angle(20.0));
-                        let lhs = dir.rotate(Vec2::from_angle(-20.0));
-                        vec![
-                            base,
-                            Dir2::new(rhs).unwrap_or(Dir2::Y),
-                            Dir2::new(lhs).unwrap_or(Dir2::Y),
-                        ]
-                    }
-                    ShootingPattern::Cross => {
-                        let perp = dir.perp();
-                        vec![
-                            base,
-                            Dir2::new(perp).unwrap_or(Dir2::Y),
-                            Dir2::new(-perp).unwrap_or(Dir2::NEG_Y),
-                            Dir2::new(-dir).unwrap_or(Dir2::Y),
-                        ]
-                    }
-                };
+                let mut directions = Vec::new();
+                for pattern in &current_attack.shooting_pattern {
+                    directions.extend(get_shooting_patterns(dir, pattern));
+                }
                 for direction in directions {
                     cmd.spawn(enemy_basic_bullet::<Hostile>(
                         enemy_pos,
@@ -218,6 +236,58 @@ fn enemy_shooting_system(
                     ));
                 }
             }
+        }
+    }
+}
+
+/// Shooting Patterns
+fn get_shooting_patterns(dir: Vec2, pattern: &ShootingPattern) -> Vec<Dir2> {
+    let base_angle = dir.to_angle();
+    match pattern {
+        ShootingPattern::Straight => vec![safe_dir(dir)],
+        ShootingPattern::Spread { count, arc } => {
+            if *count <= 1 {
+                return vec![safe_dir(dir)];
+            }
+            let mut dirs = Vec::with_capacity(*count);
+            let half_arc = arc / 2.0;
+            // The step size between each bullet
+            let step = arc / (*count as f32 - 1.0);
+
+            for i in 0..*count {
+                // Calculate offset: start from -half_arc and add step
+                let angle_offset = -half_arc + (step * i as f32);
+                let new_dir = Vec2::from_angle(base_angle + angle_offset);
+                dirs.push(safe_dir(new_dir));
+            }
+            dirs
+        }
+        ShootingPattern::Ring { count } => {
+            let mut dirs = Vec::with_capacity(*count);
+            let step = TAU / *count as f32;
+
+            for i in 0..*count {
+                let angle = base_angle + (step * i as f32);
+                dirs.push(safe_dir(Vec2::from_angle(angle)));
+            }
+            dirs
+        }
+        ShootingPattern::Flank { angle } => {
+            vec![
+                safe_dir(Vec2::from_angle(base_angle - angle)),
+                safe_dir(Vec2::from_angle(base_angle + angle)),
+            ]
+        }
+        ShootingPattern::Random { count, arc } => {
+            let mut rng = rand::rng();
+            let mut dirs = Vec::with_capacity(*count);
+            let half_arc = arc / 2.0;
+            for _ in 0..*count {
+                // Random offset between -half and +half
+                let offset = rng.random_range(-half_arc..=half_arc);
+                dirs.push(safe_dir(Vec2::from_angle(base_angle + offset)));
+            }
+            dirs
         }
     }
 }
@@ -242,11 +312,6 @@ pub fn basic_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
         RigidBody::Dynamic,
         GravityScale(0.0),
         Collider::circle(basic_enemy_collision_radius),
-        ShootingEnemy {
-            cooldown_timer: Timer::from_seconds(2.0, TimerMode::Repeating),
-            shooting_pattern: ShootingPattern::Straight,
-            shooting_range: 100.0,
-        },
     )
 }
 
@@ -254,7 +319,31 @@ pub fn eye_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     let basic_enemy_collision_radius: f32 = 12.;
     (
         Name::new("Basic Enemy"),
-        Enemy::new_random(5), // GDD "Enemies to have 1-5 lives then maybe?"
+        Enemy::new_random(5) // GDD "Enemies to have 1-5 lives then maybe?"
+            .with_shooting_range(300.)
+            .with_attack(EnemyAttack {
+                cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
+                duration: Timer::from_seconds(3.0, TimerMode::Once),
+                shooting_pattern: vec![
+                    ShootingPattern::Flank {
+                        angle: 45.0_f32.to_radians(),
+                    },
+                    ShootingPattern::Straight,
+                ],
+            })
+            .with_attack(EnemyAttack {
+                cooldown_timer: Timer::from_seconds(0.5, TimerMode::Repeating),
+                duration: Timer::from_seconds(5.0, TimerMode::Once),
+                shooting_pattern: vec![ShootingPattern::Ring { count: 9 }],
+            })
+            .with_attack(EnemyAttack {
+                cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
+                duration: Timer::from_seconds(3.0, TimerMode::Once),
+                shooting_pattern: vec![ShootingPattern::Random {
+                    count: 9,
+                    arc: 90.0_f32.to_radians(),
+                }],
+            }),
         AseAnimation {
             animation: Animation::tag("Idle")
                 .with_repeat(AnimationRepeat::Loop)
@@ -269,11 +358,6 @@ pub fn eye_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
         RigidBody::Dynamic,
         GravityScale(0.0),
         Collider::circle(basic_enemy_collision_radius),
-        ShootingEnemy {
-            cooldown_timer: Timer::from_seconds(4.0, TimerMode::Repeating),
-            shooting_pattern: ShootingPattern::Cross,
-            shooting_range: 200.0,
-        },
     )
 }
 
@@ -298,11 +382,6 @@ pub fn gate_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
         GravityScale(0.0),
         Dominance(5), // dominates all dynamic bodies with a dominance lower than `5`.
         Collider::rectangle(50., 50.),
-        ShootingEnemy {
-            cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
-            shooting_pattern: ShootingPattern::Triple,
-            shooting_range: 100.0,
-        },
     )
 }
 
