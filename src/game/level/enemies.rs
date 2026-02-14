@@ -327,9 +327,16 @@ pub fn eye_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
         Enemy::new_random(5) // GDD "Enemies to have 1-5 lives then maybe?"
             .with_shooting_range(300.)
             .with_attack(EnemyAttack {
-                cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
-                duration: Timer::from_seconds(5.0, TimerMode::Once),
+                cooldown_timer: Timer::from_seconds(0.5, TimerMode::Repeating),
+                duration: Timer::from_seconds(2.0, TimerMode::Once),
                 shooting_pattern: vec![ShootingPattern::Straight],
+            })
+            .with_attack(EnemyAttack {
+                cooldown_timer: Timer::from_seconds(0.2, TimerMode::Repeating),
+                duration: Timer::from_seconds(2.0, TimerMode::Once),
+                shooting_pattern: vec![ShootingPattern::Flank {
+                    angle: 22.5_f32.to_radians(),
+                }],
             }),
         AseAnimation {
             animation: Animation::tag("Idle")
@@ -378,7 +385,34 @@ pub fn eye_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     (
         Name::new("Eye Boss"),
         Boss,
-        Enemy::new_random(1),
+        Enemy::new_random(1)
+            .with_shooting_range(300.)
+            .with_attack(EnemyAttack {
+                cooldown_timer: Timer::from_seconds(0.2, TimerMode::Repeating),
+                duration: Timer::from_seconds(1.0, TimerMode::Once),
+                shooting_pattern: vec![
+                    ShootingPattern::Flank {
+                        angle: 45.0_f32.to_radians(),
+                    },
+                    ShootingPattern::Straight,
+                ],
+            })
+            .with_attack(EnemyAttack {
+                cooldown_timer: Timer::from_seconds(0.5, TimerMode::Repeating),
+                duration: Timer::from_seconds(2.0, TimerMode::Once),
+                shooting_pattern: vec![ShootingPattern::Spread {
+                    count: 6,
+                    arc: 90.0_f32.to_radians(),
+                }],
+            })
+            .with_attack(EnemyAttack {
+                cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
+                duration: Timer::from_seconds(3.0, TimerMode::Once),
+                shooting_pattern: vec![ShootingPattern::Random {
+                    count: 9,
+                    arc: 60.0_f32.to_radians(),
+                }],
+            }),
         AseAnimation {
             animation: Animation::tag("idle")
                 .with_repeat(AnimationRepeat::Loop)
@@ -403,7 +437,31 @@ pub fn elephant_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     (
         Name::new("Elephant Boss"),
         Boss,
-        Enemy::new_random(1),
+        Enemy::new_random(1)
+            .with_shooting_range(400.)
+            .with_attack(EnemyAttack {
+                cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
+                duration: Timer::from_seconds(3.0, TimerMode::Once),
+                shooting_pattern: vec![
+                    ShootingPattern::Flank {
+                        angle: 45.0_f32.to_radians(),
+                    },
+                    ShootingPattern::Straight,
+                ],
+            })
+            .with_attack(EnemyAttack {
+                cooldown_timer: Timer::from_seconds(0.5, TimerMode::Repeating),
+                duration: Timer::from_seconds(5.0, TimerMode::Once),
+                shooting_pattern: vec![ShootingPattern::Ring { count: 9 }],
+            })
+            .with_attack(EnemyAttack {
+                cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
+                duration: Timer::from_seconds(3.0, TimerMode::Once),
+                shooting_pattern: vec![ShootingPattern::Random {
+                    count: 9,
+                    arc: 90.0_f32.to_radians(),
+                }],
+            }),
         AseAnimation {
             animation: Animation::tag("Idle")
                 .with_repeat(AnimationRepeat::Loop)

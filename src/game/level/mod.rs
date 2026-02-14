@@ -80,6 +80,17 @@ impl Level {
             false
         }
     }
+
+    pub fn player_stats(&self) -> usize {
+        use Level::*;
+        match self {
+            Tutorial => 3,
+            Gates => 6,
+            Maya => 9,
+            Mura => 12,
+            Narak => 15,
+        }
+    }
 }
 
 #[derive(Resource, Asset, Clone, Reflect)]
@@ -132,7 +143,12 @@ pub fn spawn_level(
         Tutorial => {
             let player_initial_transform = Vec2::new(-30.0, 0.0);
             commands.entity(lev_entity).insert((children![
-                player(100.0, &anim_assets, player_initial_transform),
+                player(
+                    100.0,
+                    &anim_assets,
+                    player_initial_transform,
+                    current_level.player_stats()
+                ),
                 basic_boss((-30., 220.).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
@@ -144,7 +160,12 @@ pub fn spawn_level(
         Gates => {
             let player_initial_transform = Vec2::new(20.0, -100.0);
             commands.entity(lev_entity).insert((children![
-                player(100.0, &anim_assets, player_initial_transform),
+                player(
+                    100.0,
+                    &anim_assets,
+                    player_initial_transform,
+                    current_level.player_stats()
+                ),
                 eye_enemy((80., 100.).into(), &anim_assets),
                 eye_enemy((-80., 200.).into(), &anim_assets),
                 gate_boss((0., 370.).into(), &anim_assets),
@@ -156,9 +177,14 @@ pub fn spawn_level(
             ],));
         }
         Maya => {
-            let player_initial_transform = Vec2::new(-30.0, -380.0);
+            let player_initial_transform = Vec2::new(-30.0, -360.0);
             commands.entity(lev_entity).insert((children![
-                player(100.0, &anim_assets, player_initial_transform),
+                player(
+                    100.0,
+                    &anim_assets,
+                    player_initial_transform,
+                    current_level.player_stats()
+                ),
                 eye_enemy((150., -20.).into(), &anim_assets),
                 eye_enemy((-150., -20.).into(), &anim_assets),
                 eye_boss((-30.0, 240.0).into(), &anim_assets),
@@ -170,9 +196,14 @@ pub fn spawn_level(
             ],));
         }
         Mura => {
-            let player_initial_transform = Vec2::new(-180.0, -340.0);
+            let player_initial_transform = Vec2::new(-160.0, -340.0);
             commands.entity(lev_entity).insert((children![
-                player(100.0, &anim_assets, player_initial_transform),
+                player(
+                    100.0,
+                    &anim_assets,
+                    player_initial_transform,
+                    current_level.player_stats()
+                ),
                 basic_enemy((-70., -60.).into(), &anim_assets),
                 basic_enemy((-60., -50.).into(), &anim_assets),
                 elephant_boss((20., 330.).into(), &anim_assets),
@@ -186,7 +217,12 @@ pub fn spawn_level(
         Narak => {
             let player_initial_transform = Vec2::new(0.0, 0.0);
             commands.entity(lev_entity).insert((children![
-                player(100.0, &anim_assets, player_initial_transform),
+                player(
+                    100.0,
+                    &anim_assets,
+                    player_initial_transform,
+                    current_level.player_stats()
+                ),
                 basic_enemy((-70., 20.).into(), &anim_assets),
                 basic_enemy((-60., 0.).into(), &anim_assets),
                 son_boss((140., 40.).into(), &anim_assets),

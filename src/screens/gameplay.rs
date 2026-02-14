@@ -26,7 +26,7 @@ use crate::{
 pub struct GameplayLifetime;
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_systems(
+    app.init_resource::<LastCleared>().add_systems(
         OnEnter(Screen::Gameplay),
         (spawn_tiled_map, spawn_level).chain(),
     );
@@ -92,6 +92,9 @@ fn check_boss_and_player(
         }
     }
 }
+
+#[derive(Resource, Default)]
+struct LastCleared(usize);
 
 fn unpause(
     mut next_pause: ResMut<NextState<Pause>>,

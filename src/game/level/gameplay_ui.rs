@@ -6,7 +6,10 @@ use bevy::{
 };
 
 use crate::{
-    game::{level::LevelAssets, player::Player},
+    game::{
+        level::{Level, LevelAssets},
+        player::Player,
+    },
     menus::Menu,
     screens::Screen,
     theme::palette::LABEL_TEXT,
@@ -58,17 +61,13 @@ pub fn spawn_gameplay_ui(
     mut cmd: Commands,
     assets: Res<LevelAssets>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
-    player_query: Query<&Player>,
     window: Single<Entity, With<Window>>,
+    current_level: Res<State<Level>>,
 ) {
     let layout = TextureAtlasLayout::from_grid(UVec2::splat(32), 2, 2, None, None);
     let layout_handle = texture_atlas_layouts.add(layout);
 
-    let (max_hearts, max_ammo) = if let Ok(player) = player_query.single() {
-        (player.max_life, player.max_ammo)
-    } else {
-        (3, 3)
-    };
+    let stats = current_level.player_stats();
 
     cmd.spawn((
         Name::new("Gameplay UI"),
@@ -89,7 +88,7 @@ pub fn spawn_gameplay_ui(
     .with_children(|ui| {
         ui.spawn(stat_container("Hearts Container"))
             .with_children(|ui| {
-                for i in 0..max_hearts {
+                for i in 0..stats {
                     ui.spawn((
                         HeartIcon { index: i },
                         ImageNode::from_atlas_image(
@@ -109,7 +108,7 @@ pub fn spawn_gameplay_ui(
             });
         ui.spawn(stat_container("Ammo Container"))
             .with_children(|ui| {
-                for i in 0..max_ammo {
+                for i in 0..stats {
                     ui.spawn((
                         Name::new(format!("Ammo {}", i)),
                         AmmoIcon { index: i },

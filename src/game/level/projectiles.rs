@@ -144,7 +144,7 @@ pub fn enemy_basic_bullet<HostilityComponent: Component + Default>(
 ) -> impl Bundle {
     let lifespan_projectile_collider_radius: f32 = 2.;
     let projectile_life: f32 = 3.0; // seconds
-    let speed: f32 = 200.0;
+    let speed: f32 = 100.0;
 
     let new_xy = (lifespan_projectile_collider_radius + thrower_radius + 1.0e-3) * direction + xy;
     (

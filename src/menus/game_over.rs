@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     menus::Menu,
+    screens::Screen,
     theme::{interaction::InteractionAssets, palette::BACKGROUND_DARK, widget},
 };
 
@@ -42,6 +43,7 @@ fn spawn_game_over(mut cmd: Commands, assets: Res<InteractionAssets>) {
                 BackgroundColor(BACKGROUND_DARK.with_alpha(0.6)),
                 children![
                     widget::header("You Died"),
+                    widget::button("Retry", retry_level),
                     widget::button("Quit to title", return_to_main),
                 ],
             )
@@ -51,4 +53,8 @@ fn spawn_game_over(mut cmd: Commands, assets: Res<InteractionAssets>) {
 
 fn return_to_main(_: On<Pointer<Click>>, mut next_menu: ResMut<NextState<Menu>>) {
     next_menu.set(Menu::Main);
+}
+
+fn retry_level(_: On<Pointer<Click>>, mut next_screen: ResMut<NextState<Screen>>) {
+    next_screen.set(Screen::Loading);
 }

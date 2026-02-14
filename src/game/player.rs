@@ -45,7 +45,7 @@ impl Default for Player {
         Self {
             max_life: 3,
             life: 3, // "3 lives on player?"
-            cool: 0.5,
+            cool: 0.3,
             max_ammo: 3,
             ammo: 3,
         }
@@ -57,6 +57,16 @@ impl Player {
         self.ammo += n;
     }
 
+    pub fn with_stats(stats: usize) -> Self {
+        Self {
+            max_ammo: stats,
+            ammo: stats,
+            max_life: stats,
+            life: stats,
+            ..default()
+        }
+    }
+
     pub fn decrement_ammo(&mut self, n: usize) {
         // In case any later debug; Negative ammo should not happen
         self.ammo = self.ammo.saturating_sub(n);
@@ -64,10 +74,15 @@ impl Player {
 }
 
 /// The player character.
-pub fn player(max_speed: f32, anim_assets: &AnimationAssets, transform: Vec2) -> impl Bundle {
+pub fn player(
+    max_speed: f32,
+    anim_assets: &AnimationAssets,
+    transform: Vec2,
+    stats: usize,
+) -> impl Bundle {
     (
         Name::new("Player"),
-        Player::default(),
+        Player::with_stats(stats),
         PlayerAnimation {
             state: PlayerAnimationState::default(),
         },
