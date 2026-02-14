@@ -96,16 +96,34 @@ impl FromWorld for AnimationAssets {
             player: PlayerAssets {
                 aseprite: assets.load("textures/chars/mom.aseprite"),
                 steps: vec![
-                    assets.load("audio/sound_effects/step1.ogg"),
-                    assets.load("audio/sound_effects/step2.ogg"),
-                    assets.load("audio/sound_effects/step3.ogg"),
-                    assets.load("audio/sound_effects/step4.ogg"),
+                    assets.load("audio/sound_effects/player/step1.ogg"),
+                    assets.load("audio/sound_effects/player/step2.ogg"),
+                    assets.load("audio/sound_effects/player/step3.ogg"),
+                    assets.load("audio/sound_effects/player/step4.ogg"),
+                ],
+                attacks: vec![
+                    assets.load("audio/sound_effects/player/att1.ogg"),
+                    assets.load("audio/sound_effects/player/att2.ogg"),
+                    assets.load("audio/sound_effects/player/att3.ogg"),
+                ],
+                pickup: assets.load("textures/props/pickup.ogg"),
+                damages: vec![
+                    assets.load("audio/sound_effects/player/dmg1.ogg"),
+                    assets.load("audio/sound_effects/player/dmg2.ogg"),
+                    assets.load("audio/sound_effects/player/dmg3.ogg"),
+                    assets.load("audio/sound_effects/player/dmg4.ogg"),
                 ],
                 chakram: assets.load("textures/props/chakram.aseprite"),
             },
             enemies: EnemyAssets {
                 aseprite: assets.load("textures/chars/seedling.aseprite"),
                 eye_enemy: assets.load("textures/chars/eye-enemy.aseprite"),
+                eye_enemy_damages: vec![
+                    assets.load("audio/sound_effects/enemies/eyes/dmg1.ogg"),
+                    assets.load("audio/sound_effects/enemies/eyes/dmg2.ogg"),
+                    assets.load("audio/sound_effects/enemies/eyes/dmg3.ogg"),
+                    assets.load("audio/sound_effects/enemies/eyes/dmg4.ogg"),
+                ],
                 boss1: assets.load("textures/chars/boss1.aseprite"),
                 boss2: assets.load("textures/chars/boss2.aseprite"),
                 boss3: assets.load("textures/chars/boss3.aseprite"),

@@ -12,10 +12,9 @@
 //! Note that the implementation used here is limited for demonstration
 //! purposes. If you want to move the player in a smoother way,
 //! consider using a [fixed timestep](https://github.com/bevyengine/bevy/blob/main/examples/movement/physics_in_fixed_timestep.rs).
-use std::ops::DerefMut;
-
 use crate::{
     AppSystems, PausableSystems,
+    audio::sound_effect,
     game::{
         Red,
         animation::*,
@@ -25,6 +24,8 @@ use crate::{
 };
 use avian2d::prelude::*;
 use bevy::{input::common_conditions::input_just_pressed, prelude::*, window::PrimaryWindow};
+use rand::seq::IndexedRandom;
+use std::ops::DerefMut;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
@@ -66,6 +67,7 @@ impl Default for MovementController {
 #[cfg_attr(any(), rustfmt::skip)]
 fn on_collision(
     mut commands: Commands,
+    anim_assets: Res<AnimationAssets>,
     mut collision_reader: MessageReader<CollisionStart>,
     mut enemy_query: Query<(Entity, &mut Enemy)>,
     mut player_query: Query<(Entity, &mut Player)>,
@@ -79,10 +81,10 @@ fn on_collision(
         let mut is_c2_projectile: Option<bool> = None;
 
         // player/enemy with projectile
-        if on_collision_player(&mut commands, &mut enemy_query, &mut player_query, &mut projectile_query, &c1, &c2, &mut is_c2_projectile)
-        || on_collision_player(&mut commands, &mut enemy_query, &mut player_query, &mut projectile_query, &c2, &c1, &mut is_c1_projectile)
-        || on_collision_enemy(&mut commands, &mut enemy_query, &mut player_query, &mut projectile_query, &c1, &c2, &mut is_c2_projectile)
-        || on_collision_enemy(&mut commands, &mut enemy_query, &mut player_query, &mut projectile_query, &c2, &c1, &mut is_c1_projectile)
+        if on_collision_player(&mut commands, &anim_assets, &mut enemy_query, &mut player_query, &mut projectile_query, &c1, &c2, &mut is_c2_projectile)
+        || on_collision_player(&mut commands, &anim_assets, &mut enemy_query, &mut player_query, &mut projectile_query, &c2, &c1, &mut is_c1_projectile)
+        || on_collision_enemy(&mut commands, &anim_assets, &mut enemy_query, &mut player_query, &mut projectile_query, &c1, &c2, &mut is_c2_projectile)
+        || on_collision_enemy(&mut commands, &anim_assets, &mut enemy_query, &mut player_query, &mut projectile_query, &c2, &c1, &mut is_c1_projectile)
         {
             continue;
         }
@@ -92,8 +94,8 @@ fn on_collision(
             is_c2_projectile.unwrap_or(projectile_query.contains(c2)),
         ) {
             (true, true) => {/* projectile vs projectile */}
-            (true, false) => on_collision_projectile_with_something_else(&mut commands, &mut projectile_query, &c1),
-            (false, true) =>  on_collision_projectile_with_something_else(&mut commands, &mut projectile_query, &c2),
+            (true, false) => on_collision_projectile_with_something_else(&mut commands, &anim_assets, &mut projectile_query, &c1),
+            (false, true) =>  on_collision_projectile_with_something_else(&mut commands, &anim_assets, &mut projectile_query, &c2),
             (false, false) => {/* else vs else */}
         }
     }
@@ -102,6 +104,7 @@ fn on_collision(
 // return is_continue
 fn on_collision_player(
     commands: &mut Commands,
+    anim_assets: &Res<AnimationAssets>,
     enemy_query: &mut Query<(Entity, &mut Enemy)>,
     player_query: &mut Query<(Entity, &mut Player)>,
     projectile_query: &mut Query<(Entity, &mut Projectile, Has<Friendly>, Has<Hostile>)>,
@@ -116,6 +119,14 @@ fn on_collision_player(
             if has_hostile {
                 commands.entity(player_entity).insert(Red::default());
                 player.life = player.life.saturating_sub(1);
+                commands.spawn(sound_effect(
+                    anim_assets
+                        .player
+                        .damages
+                        .choose(&mut rand::rng())
+                        .unwrap()
+                        .clone(),
+                ));
             }
             commands.entity(proj_entity).despawn();
             *is_c2_projectile = Some(true);
@@ -130,6 +141,7 @@ fn on_collision_player(
 // return is_continue
 fn on_collision_enemy(
     commands: &mut Commands,
+    anim_assets: &Res<AnimationAssets>,
     enemy_query: &mut Query<(Entity, &mut Enemy)>,
     player_query: &mut Query<(Entity, &mut Player)>,
     projectile_query: &mut Query<(Entity, &mut Projectile, Has<Friendly>, Has<Hostile>)>,
@@ -145,6 +157,14 @@ fn on_collision_enemy(
                 enemy.life = enemy.life.saturating_sub(1);
                 commands.entity(proj_entity).despawn();
                 commands.entity(enemy_entity).insert(Red::default());
+                commands.spawn(sound_effect(
+                    anim_assets
+                        .enemies
+                        .eye_enemy_damages
+                        .choose(&mut rand::rng())
+                        .unwrap()
+                        .clone(),
+                ));
             }
             // nothing for enemy bullet to enemy(drain)
             *is_c2_projectile = Some(true);
@@ -159,6 +179,7 @@ fn on_collision_enemy(
 
 fn on_collision_projectile_with_something_else(
     commands: &mut Commands,
+    anim_assets: &Res<AnimationAssets>,
     projectile_query: &mut Query<(Entity, &mut Projectile, Has<Friendly>, Has<Hostile>)>,
     c1: &Entity,
 ) {
@@ -220,6 +241,7 @@ fn apply_player_throw(
             // Fallback
             player_transform.local_x().xy()
         };
+
         let direction = Dir2::new(dir_not_norm.normalize()).expect("It is not normalized");
         commands.spawn(player_chakra::<Friendly>(
             xy,
@@ -227,6 +249,14 @@ fn apply_player_throw(
             PLAYER_COLLIDER_CAPSULE.0,
             PLAYER_COLLIDER_CAPSULE.1,
             &anim_assets,
+        ));
+        commands.spawn(sound_effect(
+            anim_assets
+                .player
+                .attacks
+                .choose(&mut rand::rng())
+                .unwrap()
+                .clone(),
         ));
         player.decrement_ammo(1);
 

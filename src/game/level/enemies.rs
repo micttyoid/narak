@@ -144,6 +144,8 @@ pub struct EnemyAssets {
     pub boss3: Handle<Aseprite>,
     pub boss4: Handle<Aseprite>,
     pub bullet: Handle<Image>,
+    #[dependency]
+    pub eye_enemy_damages: Vec<Handle<AudioSource>>,
 }
 
 fn check_enemy_death(

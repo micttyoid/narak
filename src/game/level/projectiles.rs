@@ -4,6 +4,7 @@ use bevy_aseprite_ultra::prelude::{Animation, AnimationDirection, AnimationRepea
 
 use crate::{
     PausableSystems,
+    audio::sound_effect,
     game::{animation::*, movement::*, player::*},
     screens::gameplay::GameplayLifetime,
 };
@@ -317,9 +318,15 @@ fn update_projectiles(
     despawned.iter().for_each(|&e| commands.entity(e).despawn());
 }
 
-fn restore_ammo(mut player: Single<&mut Player>, mut removed: RemovedComponents<Friendly>) {
+fn restore_ammo(
+    mut commands: Commands,
+    mut player: Single<&mut Player>,
+    mut removed: RemovedComponents<Friendly>,
+    anim_assets: Res<AnimationAssets>,
+) {
     if !removed.is_empty() {
         let mut p = player.into_inner();
+        commands.spawn(sound_effect(anim_assets.player.pickup.clone()));
         p.increment_ammo(removed.len());
     }
     removed.clear();

@@ -145,4 +145,10 @@ pub struct PlayerAssets {
     pub chakram: Handle<Aseprite>,
     #[dependency]
     pub steps: Vec<Handle<AudioSource>>,
+    #[dependency]
+    pub attacks: Vec<Handle<AudioSource>>,
+    #[dependency]
+    pub damages: Vec<Handle<AudioSource>>,
+    #[dependency]
+    pub pickup: Handle<AudioSource>,
 }
