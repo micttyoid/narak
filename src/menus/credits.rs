@@ -2,7 +2,12 @@
 
 use bevy::{ecs::spawn::SpawnIter, input::common_conditions::input_just_pressed, prelude::*};
 
-use crate::{asset_tracking::LoadResource, audio::music, menus::Menu, theme::prelude::*};
+use crate::{
+    asset_tracking::LoadResource,
+    audio::music,
+    menus::Menu,
+    theme::{interaction::InteractionAssets, prelude::*},
+};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Menu::Credits), spawn_credits_menu);
@@ -15,7 +20,21 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Menu::Credits), start_credits_music);
 }
 
-fn spawn_credits_menu(mut commands: Commands) {
+fn spawn_credits_menu(mut commands: Commands, bg_assets: Res<InteractionAssets>) {
+    commands.spawn((
+        Name::new("Background Image"),
+        Node {
+            position_type: PositionType::Absolute,
+            width: percent(100),
+            height: percent(100),
+            ..default()
+        },
+        ImageNode {
+            image: bg_assets.cover.clone(),
+            ..default()
+        },
+        DespawnOnExit(Menu::Credits),
+    ));
     commands.spawn((
         widget::ui_root("Credits Menu"),
         GlobalZIndex(2),

@@ -1,10 +1,9 @@
 use avian2d::prelude::*;
 use bevy::prelude::*;
 use bevy_aseprite_ultra::prelude::{Animation, AnimationDirection, AnimationRepeat, AseAnimation};
-use std::ops::{Deref, DerefMut};
 
 use crate::{
-    AppSystems, PausableSystems,
+    PausableSystems,
     game::{
         animation::*,
         level::enemies::{basic_boss, basic_enemy},
@@ -102,12 +101,11 @@ pub fn player_chakra<HostilityComponent: Component + Default>(
     // (1.0e-3) -------------------------------|---------------------------------- Thrower
     //    ^ tolerance
     // Calculate how far the capsule extends in the firing direction
-    let dir_vec = direction.as_vec2();
-    let extent_in_direction = (thrower_height * dir_vec.y.abs()) + thrower_radius;
+    let extent_in_direction = (thrower_height + thrower_radius);
     // TODO: needs to be fixed according to player capsule collidor
     let new_xy =
         (player_projectile_collider_radius + (extent_in_direction) + 1.0e-3) * direction + xy;
-    let chakram_projectile_life: f32 = 5.0; // seconds
+    let chakram_projectile_life: f32 = 4.0; // seconds
     (
         Name::new("Chakra"),
         Projectile {
@@ -137,7 +135,47 @@ pub fn player_chakra<HostilityComponent: Component + Default>(
         RigidBody::Dynamic,
         GravityScale(0.0),
         Collider::circle(player_projectile_collider_radius),
+        Restitution::new(2.0),
+        Friction::new(0.0),
+    )
+}
+
+pub fn enemy_basic_bullet<HostilityComponent: Component + Default>(
+    xy: Vec2,
+    direction: Dir2,
+    thrower_radius: f32,
+    anim_assets: &AnimationAssets,
+) -> impl Bundle {
+    let lifespan_projectile_collider_radius: f32 = 2.;
+    let projectile_life: f32 = 3.0; // seconds
+    let speed: f32 = 200.0;
+
+    let new_xy = (lifespan_projectile_collider_radius + thrower_radius + 1.0e-3) * direction + xy;
+    (
+        Name::new("Enemy Basic Projectile"),
+        Projectile {
+            direction,
+            dues: vec![
+                Due::BounceDown(3),
+                Due::Lifespan(Timer::from_seconds(projectile_life, TimerMode::Once)),
+            ],
+        },
+        HostilityComponent::default(),
+        LinearVelocity(speed * direction.as_vec2()),
+        LinearDamping(0.0),
+        Sprite {
+            image: anim_assets.enemies.bullet.clone(),
+            custom_size: Some(Vec2::new(8.0, 8.0)),
+            ..default()
+        },
+        ScreenWrap,
+        LockedAxes::new().lock_rotation(),
+        Transform::from_xyz(new_xy.x, new_xy.y, PROJECTILE_Z_TRANSLATION),
+        RigidBody::Dynamic,
+        GravityScale(0.0),
+        Collider::circle(lifespan_projectile_collider_radius),
         Restitution::new(1.5),
+        Friction::new(0.0),
     )
 }
 

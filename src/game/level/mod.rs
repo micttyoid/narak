@@ -138,7 +138,7 @@ pub fn spawn_level(
                 player(100.0, &anim_assets),
                 eye_enemy((80., -40.).into(), &anim_assets),
                 eye_enemy((-80., -40.).into(), &anim_assets),
-                gate_boss((0., 300.).into(), &anim_assets),
+                gate_boss((0., 370.).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
                     DespawnOnExit(Menu::None), // To remove at ending such as to [`Menu::Credit`]

@@ -7,7 +7,7 @@ use crate::{
     PausableSystems,
     game::{
         animation::*,
-        level::projectiles::{Hostile, lifespan_projectile},
+        level::projectiles::{Hostile, enemy_basic_bullet},
         movement::*,
         player::{PLAYER_Z_TRANSLATION, Player},
     },
@@ -210,7 +210,7 @@ fn enemy_shooting_system(
                     }
                 };
                 for direction in directions {
-                    cmd.spawn(lifespan_projectile::<Hostile>(
+                    cmd.spawn(enemy_basic_bullet::<Hostile>(
                         enemy_pos,
                         direction,
                         enemy_radius,
@@ -294,7 +294,7 @@ pub fn gate_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
         ScreenWrap,
         LockedAxes::new().lock_rotation(), // To be resolved with later kinematic solution
         Transform::from_xyz(xy.x, xy.y, ENEMY_Z_TRANSLATION),
-        RigidBody::Dynamic,
+        RigidBody::Static,
         GravityScale(0.0),
         Dominance(5), // dominates all dynamic bodies with a dominance lower than `5`.
         Collider::rectangle(50., 50.),

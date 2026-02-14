@@ -9,7 +9,6 @@ use crate::{
     game::{level::LevelAssets, player::Player},
     menus::Menu,
     screens::Screen,
-    theme::{palette::GAMEPLAY_UI_BACKGROUND, widget},
 };
 
 pub(super) fn plugin(app: &mut App) {
@@ -81,6 +80,7 @@ pub fn spawn_gameplay_ui(
             ..default()
         },
         DespawnOnExit(Screen::Gameplay),
+        DespawnOnEnter(Menu::Credits),
     ))
     .with_children(|ui| {
         ui.spawn(stat_container("Hearts Container"))
