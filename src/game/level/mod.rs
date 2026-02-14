@@ -127,11 +127,13 @@ pub fn spawn_level(
         ))
         .id();
     use Level::*;
+
     match current_level.get() {
         Tutorial => {
+            let player_initial_transform = Vec2::new(-30.0, 0.0);
             commands.entity(lev_entity).insert((children![
-                player(100.0, &anim_assets),
-                basic_boss((0., 220.).into(), &anim_assets),
+                player(100.0, &anim_assets, player_initial_transform),
+                basic_boss((-30., 220.).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
                     DespawnOnExit(Menu::None), // To remove at ending such as to [`Menu::Credit`]
@@ -140,10 +142,11 @@ pub fn spawn_level(
             ],));
         }
         Gates => {
+            let player_initial_transform = Vec2::new(20.0, -100.0);
             commands.entity(lev_entity).insert((children![
-                player(100.0, &anim_assets),
-                eye_enemy((80., -40.).into(), &anim_assets),
-                eye_enemy((-80., -40.).into(), &anim_assets),
+                player(100.0, &anim_assets, player_initial_transform),
+                eye_enemy((80., 100.).into(), &anim_assets),
+                eye_enemy((-80., 200.).into(), &anim_assets),
                 gate_boss((0., 370.).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
@@ -153,11 +156,12 @@ pub fn spawn_level(
             ],));
         }
         Maya => {
+            let player_initial_transform = Vec2::new(-30.0, -380.0);
             commands.entity(lev_entity).insert((children![
-                player(100.0, &anim_assets),
-                eye_enemy((-70., 20.).into(), &anim_assets),
-                eye_enemy((-60., 0.).into(), &anim_assets),
-                eye_boss((140., 40.).into(), &anim_assets),
+                player(100.0, &anim_assets, player_initial_transform),
+                eye_enemy((150., -20.).into(), &anim_assets),
+                eye_enemy((-150., -20.).into(), &anim_assets),
+                eye_boss((-30.0, 240.0).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
                     DespawnOnExit(Menu::None),
@@ -166,11 +170,12 @@ pub fn spawn_level(
             ],));
         }
         Mura => {
+            let player_initial_transform = Vec2::new(-180.0, -340.0);
             commands.entity(lev_entity).insert((children![
-                player(100.0, &anim_assets),
-                basic_enemy((-70., 20.).into(), &anim_assets),
-                basic_enemy((-60., 0.).into(), &anim_assets),
-                elephant_boss((140., 40.).into(), &anim_assets),
+                player(100.0, &anim_assets, player_initial_transform),
+                basic_enemy((-70., -60.).into(), &anim_assets),
+                basic_enemy((-60., -50.).into(), &anim_assets),
+                elephant_boss((20., 330.).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
                     DespawnOnExit(Menu::None),
@@ -179,8 +184,9 @@ pub fn spawn_level(
             ],));
         }
         Narak => {
+            let player_initial_transform = Vec2::new(0.0, 0.0);
             commands.entity(lev_entity).insert((children![
-                player(100.0, &anim_assets),
+                player(100.0, &anim_assets, player_initial_transform),
                 basic_enemy((-70., 20.).into(), &anim_assets),
                 basic_enemy((-60., 0.).into(), &anim_assets),
                 son_boss((140., 40.).into(), &anim_assets),

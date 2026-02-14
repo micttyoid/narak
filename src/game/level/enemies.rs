@@ -381,26 +381,8 @@ pub fn eye_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
             .with_shooting_range(300.)
             .with_attack(EnemyAttack {
                 cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
-                duration: Timer::from_seconds(3.0, TimerMode::Once),
-                shooting_pattern: vec![
-                    ShootingPattern::Flank {
-                        angle: 45.0_f32.to_radians(),
-                    },
-                    ShootingPattern::Straight,
-                ],
-            })
-            .with_attack(EnemyAttack {
-                cooldown_timer: Timer::from_seconds(0.5, TimerMode::Repeating),
                 duration: Timer::from_seconds(5.0, TimerMode::Once),
-                shooting_pattern: vec![ShootingPattern::Ring { count: 9 }],
-            })
-            .with_attack(EnemyAttack {
-                cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
-                duration: Timer::from_seconds(3.0, TimerMode::Once),
-                shooting_pattern: vec![ShootingPattern::Random {
-                    count: 9,
-                    arc: 90.0_f32.to_radians(),
-                }],
+                shooting_pattern: vec![ShootingPattern::Straight],
             }),
         AseAnimation {
             animation: Animation::tag("Idle")

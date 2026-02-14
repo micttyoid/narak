@@ -64,7 +64,7 @@ impl Player {
 }
 
 /// The player character.
-pub fn player(max_speed: f32, anim_assets: &AnimationAssets) -> impl Bundle {
+pub fn player(max_speed: f32, anim_assets: &AnimationAssets, transform: Vec2) -> impl Bundle {
     (
         Name::new("Player"),
         Player::default(),
@@ -85,7 +85,7 @@ pub fn player(max_speed: f32, anim_assets: &AnimationAssets) -> impl Bundle {
         },
         ScreenWrap,
         LockedAxes::new().lock_rotation(), // To be resolved with later kinematic solution
-        Transform::from_xyz(0., 0., PLAYER_Z_TRANSLATION),
+        Transform::from_xyz(transform.x, transform.y, PLAYER_Z_TRANSLATION),
         // TODO: possibly kinematic later that should update `movement::apply_movement` along
         RigidBody::Dynamic,
         GravityScale(0.0),
