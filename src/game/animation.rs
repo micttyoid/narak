@@ -12,8 +12,9 @@ use crate::{
     AppSystems, PausableSystems,
     audio::sound_effect,
     game::{
-        level::enemies::{
-            EnemyAssets, EyeEnemyAssets, GatesAssets, MayaAssets, MuraAssets, NarakAssets,
+        level::{
+            bosses::{GatesAssets, MayaAssets, MuraAssets, NarakAssets},
+            enemies::{EnemyAssets, EyeEnemyAssets},
         },
         player::{Player, PlayerAssets},
     },

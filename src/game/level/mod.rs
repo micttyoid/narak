@@ -1,3 +1,4 @@
+pub mod bosses;
 pub mod enemies;
 pub mod gameplay_ui;
 pub mod projectiles;
@@ -11,9 +12,9 @@ use crate::{
     audio::music,
     game::{
         animation::AnimationAssets,
-        level::enemies::{
-            basic_boss, basic_enemy, elephant_boss, eye_boss, eye_enemy, gate_boss, narak_enemy,
-            son_boss,
+        level::{
+            bosses::{basic_boss, elephant_boss, eye_boss, gate_boss, son_boss},
+            enemies::{basic_enemy, eye_enemy, narak_enemy},
         },
         player::{PLAYER_Z_TRANSLATION, player},
     },
@@ -25,7 +26,12 @@ use crate::{
 pub(super) fn plugin(app: &mut App) {
     app.load_resource::<LevelAssets>()
         .init_state::<Level>()
-        .add_plugins((enemies::plugin, projectiles::plugin, gameplay_ui::plugin));
+        .add_plugins((
+            enemies::plugin,
+            projectiles::plugin,
+            gameplay_ui::plugin,
+            bosses::plugin,
+        ));
 }
 
 /// GDD "pre defined multiple maps/levels(maybe 4-5?)"

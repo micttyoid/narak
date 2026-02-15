@@ -65,7 +65,7 @@ fn update_camera(
         let effective_speed = FOLLOW_CAMERA_BASE_SPEED * factor;
 
         let pos: Vec2 = camera_pos.lerp(player_pos, effective_speed * time.delta_secs());
-        camera_transform.translation.x = pos.x;
+        //camera_transform.translation.x = pos.x; // life hax so it dont go out of map
         camera_transform.translation.y = pos.y;
     }
 }

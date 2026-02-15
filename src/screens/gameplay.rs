@@ -10,11 +10,7 @@ use crate::{
     Pause,
     audio::sound_effect,
     game::{
-        level::{
-            Level,
-            enemies::{Boss, Enemy},
-            spawn_level,
-        },
+        level::{Level, bosses::Boss, enemies::Enemy, spawn_level},
         player::*,
     },
     menus::Menu,
