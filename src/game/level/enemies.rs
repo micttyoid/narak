@@ -359,12 +359,18 @@ fn get_shooting_patterns(dir: Vec2, pattern: &ShootingPattern) -> Vec<Dir2> {
     }
 }
 
-/// An example of an enemy
+/// An example of an enemy (Lv1 Basic Enemy)
 pub fn basic_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     let basic_enemy_collision_radius: f32 = 12.;
     (
         Name::new("Basic Enemy"),
-        Enemy::new_random(5), // GDD "Enemies to have 1-5 lives then maybe?"
+        Enemy::new_random(3)
+            .with_shooting_range(250.)
+            .with_attack(EnemyAttack {
+                cooldown_timer: Timer::from_seconds(1.5, TimerMode::Repeating),
+                duration: Timer::from_seconds(4.5, TimerMode::Once),
+                shooting_pattern: vec![ShootingPattern::Straight],
+            }), // GDD "Enemies to have 1-5 lives then maybe?"
         AseAnimation {
             animation: Animation::tag("Idle")
                 .with_repeat(AnimationRepeat::Loop)
@@ -382,6 +388,66 @@ pub fn basic_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     )
 }
 
+// Lv 2 Eye Enemy
+pub fn eye_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
+    let basic_enemy_collision_radius: f32 = 12.;
+    (
+        Name::new("Basic Enemy"),
+        Enemy::new_random(5) // GDD "Enemies to have 1-5 lives then maybe?"
+            .with_shooting_range(300.)
+            .with_attack(EnemyAttack {
+                cooldown_timer: Timer::from_seconds(0.5, TimerMode::Repeating),
+                duration: Timer::from_seconds(2.0, TimerMode::Once),
+                shooting_pattern: vec![ShootingPattern::Straight],
+            })
+            .with_attack(EnemyAttack {
+                cooldown_timer: Timer::from_seconds(0.2, TimerMode::Repeating),
+                duration: Timer::from_seconds(2.0, TimerMode::Once),
+                shooting_pattern: vec![ShootingPattern::Flank {
+                    angle: 22.5_f32.to_radians(),
+                }],
+            }),
+        AseAnimation {
+            animation: Animation::tag("Idle")
+                .with_repeat(AnimationRepeat::Loop)
+                .with_direction(AnimationDirection::Forward)
+                .with_speed(1.0),
+            aseprite: anim_assets.enemies.eye_enemy.aseprite.clone(),
+        },
+        Sprite::default(),
+        ScreenWrap,
+        LockedAxes::new().lock_rotation(), // To be resolved with later kinematic solution
+        Transform::from_xyz(xy.x, xy.y, ENEMY_Z_TRANSLATION),
+        RigidBody::Dynamic,
+        GravityScale(0.0),
+        Collider::circle(basic_enemy_collision_radius),
+    )
+}
+
+// Lv 3 Snake Enemy
+pub fn snake_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
+    let basic_enemy_collision_radius: f32 = 12.;
+    (
+        Name::new("Snake Enemy"),
+        Enemy::new_random(5), // GDD "Enemies to have 1-5 lives then maybe?"
+        AseAnimation {
+            animation: Animation::tag("Idle")
+                .with_repeat(AnimationRepeat::Loop)
+                .with_direction(AnimationDirection::Forward)
+                .with_speed(1.0),
+            aseprite: anim_assets.enemies.mura.enemy.clone(),
+        },
+        Sprite::default(),
+        ScreenWrap,
+        LockedAxes::new().lock_rotation(),
+        Transform::from_xyz(xy.x, xy.y, ENEMY_Z_TRANSLATION),
+        RigidBody::Dynamic,
+        GravityScale(0.0),
+        Collider::circle(basic_enemy_collision_radius),
+    )
+}
+
+// Lv 4 Narak Enemy
 pub fn narak_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     let basic_enemy_collision_radius: f32 = 12.;
     (
@@ -416,41 +482,6 @@ pub fn narak_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
         Sprite::default(),
         ScreenWrap,
         LockedAxes::new().lock_rotation(),
-        Transform::from_xyz(xy.x, xy.y, ENEMY_Z_TRANSLATION),
-        RigidBody::Dynamic,
-        GravityScale(0.0),
-        Collider::circle(basic_enemy_collision_radius),
-    )
-}
-
-pub fn eye_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
-    let basic_enemy_collision_radius: f32 = 12.;
-    (
-        Name::new("Basic Enemy"),
-        Enemy::new_random(5) // GDD "Enemies to have 1-5 lives then maybe?"
-            .with_shooting_range(300.)
-            .with_attack(EnemyAttack {
-                cooldown_timer: Timer::from_seconds(0.5, TimerMode::Repeating),
-                duration: Timer::from_seconds(2.0, TimerMode::Once),
-                shooting_pattern: vec![ShootingPattern::Straight],
-            })
-            .with_attack(EnemyAttack {
-                cooldown_timer: Timer::from_seconds(0.2, TimerMode::Repeating),
-                duration: Timer::from_seconds(2.0, TimerMode::Once),
-                shooting_pattern: vec![ShootingPattern::Flank {
-                    angle: 22.5_f32.to_radians(),
-                }],
-            }),
-        AseAnimation {
-            animation: Animation::tag("Idle")
-                .with_repeat(AnimationRepeat::Loop)
-                .with_direction(AnimationDirection::Forward)
-                .with_speed(1.0),
-            aseprite: anim_assets.enemies.eye_enemy.aseprite.clone(),
-        },
-        Sprite::default(),
-        ScreenWrap,
-        LockedAxes::new().lock_rotation(), // To be resolved with later kinematic solution
         Transform::from_xyz(xy.x, xy.y, ENEMY_Z_TRANSLATION),
         RigidBody::Dynamic,
         GravityScale(0.0),

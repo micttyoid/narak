@@ -15,7 +15,7 @@ use crate::{
         animation::AnimationAssets,
         level::{
             bosses::{elephant_boss, eye_boss, gate_boss, son_boss, tutorial_boss},
-            enemies::{basic_enemy, eye_enemy, narak_enemy},
+            enemies::{basic_enemy, eye_enemy, narak_enemy, snake_enemy},
         },
         player::{PLAYER_Z_TRANSLATION, player},
     },
@@ -202,8 +202,8 @@ pub fn spawn_level(
                     player_initial_transform,
                     current_level.player_stats()
                 ),
-                eye_enemy((80., 100.).into(), &anim_assets),
-                eye_enemy((-80., 200.).into(), &anim_assets),
+                basic_enemy((80., 100.).into(), &anim_assets),
+                basic_enemy((-80., 200.).into(), &anim_assets),
                 gate_boss((0., 370.).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
@@ -240,8 +240,8 @@ pub fn spawn_level(
                     player_initial_transform,
                     current_level.player_stats()
                 ),
-                basic_enemy((-70., -60.).into(), &anim_assets),
-                basic_enemy((-60., -50.).into(), &anim_assets),
+                snake_enemy((-70., -60.).into(), &anim_assets),
+                eye_enemy((-60., -50.).into(), &anim_assets),
                 elephant_boss((20., 330.).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
@@ -260,10 +260,10 @@ pub fn spawn_level(
                     current_level.player_stats()
                 ),
                 narak_enemy((75.3, -333.8).into(), &anim_assets),
-                narak_enemy((-33.6, 112.2).into(), &anim_assets),
+                snake_enemy((-33.6, 112.2).into(), &anim_assets),
                 narak_enemy((-189.5, 282.0).into(), &anim_assets),
-                narak_enemy((152.8, 261.0).into(), &anim_assets),
-                narak_enemy((-186.5, -215.0).into(), &anim_assets),
+                eye_enemy((152.8, 261.0).into(), &anim_assets),
+                snake_enemy((-186.5, -215.0).into(), &anim_assets),
                 son_boss((0., 400.).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),

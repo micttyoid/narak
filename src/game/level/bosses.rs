@@ -108,12 +108,53 @@ pub struct NarakAssets {
     pub death: Handle<AudioSource>,
 }
 
-// boss 1
+// Boss Lv 0 HP 3
+pub fn tutorial_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
+    let basic_enemy_collision_radius: f32 = 12.;
+    (
+        Name::new(TUTORIAL_BOSS_NAME),
+        Boss,
+        Enemy::new_random(1),
+        AseAnimation {
+            animation: Animation::tag("Idle")
+                .with_repeat(AnimationRepeat::Loop)
+                .with_direction(AnimationDirection::Forward)
+                .with_speed(1.0),
+            aseprite: anim_assets.enemies.mura.enemy.clone(),
+        },
+        Sprite::default(),
+        ScreenWrap,
+        LockedAxes::new().lock_rotation(), // To be resolved with later kinematic solution
+        Transform::from_xyz(xy.x, xy.y, BOSS_Z_TRANSLATION),
+        RigidBody::Dynamic,
+        GravityScale(0.0),
+        Dominance(5), // dominates all dynamic bodies with a dominance lower than `5`.
+        Collider::circle(basic_enemy_collision_radius),
+    )
+}
+
+// boss 1 HP 6
 pub fn gate_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     (
         Name::new(GATES_NAME),
         Boss,
-        Enemy::new_random(1),
+        Enemy::new_random(6)
+            .with_shooting_range(300.)
+            .with_attack(EnemyAttack {
+                cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
+                duration: Timer::from_seconds(4.0, TimerMode::Once),
+                shooting_pattern: vec![ShootingPattern::Flank {
+                    angle: 10.0_f32.to_radians(),
+                }],
+            })
+            .with_attack(EnemyAttack {
+                cooldown_timer: Timer::from_seconds(2.0, TimerMode::Repeating),
+                duration: Timer::from_seconds(4.0, TimerMode::Once),
+                shooting_pattern: vec![ShootingPattern::Spread {
+                    count: 5,
+                    arc: 45.0_f32.to_radians(),
+                }],
+            }),
         AseAnimation {
             animation: Animation::tag("closed")
                 .with_repeat(AnimationRepeat::Loop)
@@ -132,7 +173,7 @@ pub fn gate_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     )
 }
 
-// boss 2
+// boss 2 HP 12
 pub fn eye_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     let basic_enemy_collision_radius: f32 = 12.;
     (
@@ -184,7 +225,7 @@ pub fn eye_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     )
 }
 
-// boss 3
+// boss 3 HP 24
 pub fn elephant_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     let basic_enemy_collision_radius: f32 = 12.;
     (
@@ -233,7 +274,7 @@ pub fn elephant_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     )
 }
 
-// boss 4
+// boss 4 HP 48
 pub fn son_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     let basic_enemy_collision_radius: f32 = 12.;
     (
@@ -292,30 +333,6 @@ pub fn son_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
             timer: Timer::from_seconds(20.0, TimerMode::Repeating),
             current_index: 0,
         },
-    )
-}
-
-pub fn tutorial_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
-    let basic_enemy_collision_radius: f32 = 12.;
-    (
-        Name::new(TUTORIAL_BOSS_NAME),
-        Boss,
-        Enemy::new_random(1),
-        AseAnimation {
-            animation: Animation::tag("Idle")
-                .with_repeat(AnimationRepeat::Loop)
-                .with_direction(AnimationDirection::Forward)
-                .with_speed(1.0),
-            aseprite: anim_assets.enemies.mura.enemy.clone(),
-        },
-        Sprite::default(),
-        ScreenWrap,
-        LockedAxes::new().lock_rotation(), // To be resolved with later kinematic solution
-        Transform::from_xyz(xy.x, xy.y, BOSS_Z_TRANSLATION),
-        RigidBody::Dynamic,
-        GravityScale(0.0),
-        Dominance(5), // dominates all dynamic bodies with a dominance lower than `5`.
-        Collider::circle(basic_enemy_collision_radius),
     )
 }
 
