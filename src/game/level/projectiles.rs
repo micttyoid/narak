@@ -182,6 +182,47 @@ pub fn enemy_basic_bullet<HostilityComponent: Component + Default>(
     )
 }
 
+pub fn boss_basic_bullet<HostilityComponent: Component + Default>(
+    xy: Vec2,
+    direction: Dir2,
+    thrower_radius: f32,
+    anim_assets: &AnimationAssets,
+    color: Color,
+) -> impl Bundle {
+    let lifespan_projectile_collider_radius: f32 = 4.;
+    let projectile_life: f32 = 4.0; // seconds
+    let speed: f32 = 100.0;
+
+    let new_xy = (lifespan_projectile_collider_radius + thrower_radius + 1.0e-3) * direction + xy;
+    (
+        Name::new("Enemy Basic Projectile"),
+        Projectile {
+            direction,
+            dues: vec![
+                Due::BounceDown(4),
+                Due::Lifespan(Timer::from_seconds(projectile_life, TimerMode::Once)),
+            ],
+        },
+        HostilityComponent::default(),
+        LinearVelocity(speed * direction.as_vec2()),
+        LinearDamping(0.0),
+        Sprite {
+            image: anim_assets.enemies.bullet.clone(),
+            custom_size: Some(Vec2::new(16.0, 16.0)),
+            color,
+            ..default()
+        },
+        ScreenWrap,
+        LockedAxes::new().lock_rotation(),
+        Transform::from_xyz(new_xy.x, new_xy.y, PROJECTILE_Z_TRANSLATION),
+        RigidBody::Dynamic,
+        GravityScale(0.0),
+        Collider::circle(lifespan_projectile_collider_radius),
+        Restitution::new(1.5),
+        Friction::new(0.0),
+    )
+}
+
 #[allow(dead_code)]
 pub fn basic_projectile<HostilityComponent: Component + Default>(
     xy: Vec2,

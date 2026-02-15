@@ -12,7 +12,8 @@ use crate::{
     game::{
         animation::AnimationAssets,
         level::enemies::{
-            basic_boss, basic_enemy, elephant_boss, eye_boss, eye_enemy, gate_boss, son_boss,
+            basic_boss, basic_enemy, elephant_boss, eye_boss, eye_enemy, gate_boss, narak_enemy,
+            son_boss,
         },
         player::{PLAYER_Z_TRANSLATION, player},
     },
@@ -160,7 +161,7 @@ pub fn spawn_level(
                 (
                     Name::new("Tutorial Text"),
                     Text2d::new(
-                        "Aim & Attack to Kill Boss\n and Proceed to Next Level".to_string()
+                        "Aim & Attack to Kill Enemies\n     Fulfill your Dharma".to_string()
                     ),
                     TextFont {
                         font: level_assets.level_font.clone(),
@@ -230,7 +231,7 @@ pub fn spawn_level(
             ],));
         }
         Narak => {
-            let player_initial_transform = Vec2::new(0.0, 0.0);
+            let player_initial_transform = Vec2::new(-175.0, -420.0);
             commands.entity(lev_entity).insert((children![
                 player(
                     100.0,
@@ -238,9 +239,12 @@ pub fn spawn_level(
                     player_initial_transform,
                     current_level.player_stats()
                 ),
-                basic_enemy((-70., 20.).into(), &anim_assets),
-                basic_enemy((-60., 0.).into(), &anim_assets),
-                son_boss((140., 40.).into(), &anim_assets),
+                narak_enemy((75.3, -333.8).into(), &anim_assets),
+                narak_enemy((-33.6, 112.2).into(), &anim_assets),
+                narak_enemy((-189.5, 282.0).into(), &anim_assets),
+                narak_enemy((152.8, 261.0).into(), &anim_assets),
+                narak_enemy((-186.5, -215.0).into(), &anim_assets),
+                son_boss((0., 400.).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
                     DespawnOnExit(Menu::None),

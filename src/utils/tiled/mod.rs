@@ -63,7 +63,7 @@ pub fn spawn_tiled_map(
         Level::Gates => "level1.tmx",
         Level::Maya => "level2.tmx",
         Level::Mura => "level3.tmx",
-        Level::Narak => "map4.tile-16x16.tmx",
+        Level::Narak => "level4.tmx",
     };
     commands.spawn((
         TiledMapBundle {
