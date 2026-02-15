@@ -83,8 +83,8 @@ fn start_game_over_music(mut commands: Commands, game_over_assets: Res<GameOverA
     ));
 }
 
-fn return_to_main(_: On<Pointer<Click>>, mut next_menu: ResMut<NextState<Menu>>) {
-    next_menu.set(Menu::Main);
+fn return_to_main(_: On<Pointer<Click>>, mut next_screen: ResMut<NextState<Screen>>) {
+    next_screen.set(Screen::Title);
 }
 
 fn retry_level(_: On<Pointer<Click>>, mut next_screen: ResMut<NextState<Screen>>) {

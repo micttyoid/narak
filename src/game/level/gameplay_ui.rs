@@ -83,7 +83,7 @@ pub fn spawn_gameplay_ui(
             ..default()
         },
         DespawnOnExit(Screen::Gameplay),
-        DespawnOnEnter(Menu::Credits), // credits menu switches to gameplay - hence this needs to be handled
+        DespawnOnEnter(Menu::Credits), // for when credits menu is opened at the end of gameplay
     ))
     .with_children(|ui| {
         ui.spawn(stat_container("Hearts Container"))
@@ -219,7 +219,7 @@ fn spawn_tutorial_ui(
             ..default()
         },
         DespawnOnExit(Screen::Gameplay),
-        DespawnOnEnter(Menu::Credits),
+        DespawnOnEnter(Menu::Credits), // for when credits menu is opened at the end of gameplay
         children![
             (
                 // Mouse Aim

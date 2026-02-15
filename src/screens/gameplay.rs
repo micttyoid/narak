@@ -28,7 +28,7 @@ use crate::{
 pub struct GameplayLifetime;
 
 pub(super) fn plugin(app: &mut App) {
-    app.init_resource::<LastCleared>().add_systems(
+    app.add_systems(
         OnEnter(Screen::Gameplay),
         (spawn_tiled_map, spawn_level).chain(),
     );
@@ -78,7 +78,7 @@ fn check_boss_and_player(
                 next_pause.set(Pause(true));
                 let lev = current_level.get();
                 if lev.is_last() {
-                    next_menu.set(Menu::Credits);
+                    next_menu.set(Menu::Win);
                 } else {
                     next_level.set(lev.next());
                     next_screen.set(Screen::Loading);
@@ -94,9 +94,6 @@ fn check_boss_and_player(
         }
     }
 }
-
-#[derive(Resource, Default)]
-struct LastCleared(usize);
 
 fn unpause(
     mut commands: Commands,

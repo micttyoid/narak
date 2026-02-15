@@ -69,7 +69,7 @@ impl Level {
             Gates => Maya,
             Maya => Mura,
             Mura => Narak,
-            Narak => panic!("No more next level: It is the last level"),
+            Narak => Narak,
         }
     }
 

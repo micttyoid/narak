@@ -47,8 +47,8 @@ fn spawn_win(mut cmd: Commands, assets: Res<InteractionAssets>) {
                 },
                 BackgroundColor(BACKGROUND_DARK.with_alpha(0.6)),
                 children![
-                    widget::header("You Died"),
-                    widget::button("Retry", retry_level),
+                    widget::header("Narak Slayed"),
+                    widget::button("Credits", show_credits),
                     widget::button("Quit to title", return_to_main),
                 ],
             )
@@ -80,10 +80,10 @@ fn start_win_music(mut commands: Commands, win_assets: Res<WinAssets>) {
     ));
 }
 
-fn return_to_main(_: On<Pointer<Click>>, mut next_menu: ResMut<NextState<Menu>>) {
-    next_menu.set(Menu::Main);
+fn return_to_main(_: On<Pointer<Click>>, mut next_screen: ResMut<NextState<Screen>>) {
+    next_screen.set(Screen::Title);
 }
 
-fn retry_level(_: On<Pointer<Click>>, mut next_screen: ResMut<NextState<Screen>>) {
-    next_screen.set(Screen::Loading);
+fn show_credits(_: On<Pointer<Click>>, mut next_menu: ResMut<NextState<Menu>>) {
+    next_menu.set(Menu::Credits);
 }

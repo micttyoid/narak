@@ -1,11 +1,14 @@
 //! The credits menu.
 
-use bevy::{ecs::spawn::SpawnIter, input::common_conditions::input_just_pressed, prelude::*};
+use bevy::{
+    ecs::spawn::SpawnIter, input::common_conditions::input_just_pressed, prelude::*, reflect::Enum,
+};
 
 use crate::{
     asset_tracking::LoadResource,
     audio::music,
     menus::Menu,
+    screens::Screen,
     theme::{interaction::InteractionAssets, prelude::*},
 };
 
@@ -96,12 +99,29 @@ fn grid(content: Vec<[&'static str; 2]>) -> impl Bundle {
     )
 }
 
-fn go_back_on_click(_: On<Pointer<Click>>, mut next_menu: ResMut<NextState<Menu>>) {
-    next_menu.set(Menu::Main);
+fn go_back_on_click(
+    _: On<Pointer<Click>>,
+    current_screen: Res<State<Screen>>,
+    mut next_menu: ResMut<NextState<Menu>>,
+    mut next_screen: ResMut<NextState<Screen>>,
+) {
+    if current_screen.get() != &Screen::Title {
+        next_screen.set(Screen::Title);
+    } else {
+        next_menu.set(Menu::Main);
+    }
 }
 
-fn go_back(mut next_menu: ResMut<NextState<Menu>>) {
-    next_menu.set(Menu::Main);
+fn go_back(
+    current_screen: Res<State<Screen>>,
+    mut next_menu: ResMut<NextState<Menu>>,
+    mut next_screen: ResMut<NextState<Screen>>,
+) {
+    if current_screen.get() != &Screen::Title {
+        next_screen.set(Screen::Title);
+    } else {
+        next_menu.set(Menu::Main);
+    }
 }
 
 #[derive(Resource, Asset, Clone, Reflect)]
