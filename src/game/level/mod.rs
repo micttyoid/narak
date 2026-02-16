@@ -179,7 +179,7 @@ pub fn spawn_level(
             ],));
         }
         Gates => {
-            let player_initial_transform = Vec2::new(20.0, -100.0);
+            let player_initial_transform = Vec2::new(-8.0, -211.0);
             commands.entity(lev_entity).insert((children![
                 player(
                     100.0,
@@ -187,9 +187,9 @@ pub fn spawn_level(
                     player_initial_transform,
                     current_level.player_stats()
                 ),
-                basic_enemy((80., 100.).into(), &anim_assets),
-                basic_enemy((-80., 200.).into(), &anim_assets),
-                gate_boss((0., 370.).into(), &anim_assets),
+                basic_enemy((66., 100.).into(), &anim_assets),
+                basic_enemy((-131., 210.).into(), &anim_assets),
+                gate_boss((38.3, 449.5).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
                     DespawnOnExit(Menu::None), // To remove at ending such as to [`Menu::Credit`]
@@ -208,7 +208,7 @@ pub fn spawn_level(
                 ),
                 eye_enemy((150., -20.).into(), &anim_assets),
                 eye_enemy((-150., -20.).into(), &anim_assets),
-                eye_boss((-30.0, 240.0).into(), &anim_assets),
+                eye_boss((-36.5, 222.0).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
                     DespawnOnExit(Menu::None),
@@ -225,8 +225,10 @@ pub fn spawn_level(
                     player_initial_transform,
                     current_level.player_stats()
                 ),
-                snake_enemy((-70., -60.).into(), &anim_assets),
-                eye_enemy((-60., -50.).into(), &anim_assets),
+                snake_enemy((-186.5, -53.0).into(), &anim_assets),
+                snake_enemy((104.5, -48.3).into(), &anim_assets),
+                eye_enemy((57.8, -281.8).into(), &anim_assets),
+                eye_enemy((-190.6, 120.6).into(), &anim_assets),
                 elephant_boss((20., 330.).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),

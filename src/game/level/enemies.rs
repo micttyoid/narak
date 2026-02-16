@@ -364,13 +364,13 @@ pub fn basic_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     let basic_enemy_collision_radius: f32 = 12.;
     (
         Name::new("Basic Enemy"),
-        Enemy::new_random(3)
-            .with_shooting_range(250.)
-            .with_attack(EnemyAttack {
-                cooldown_timer: Timer::from_seconds(1.5, TimerMode::Repeating),
-                duration: Timer::from_seconds(4.5, TimerMode::Once),
-                shooting_pattern: vec![ShootingPattern::Straight],
-            }), // GDD "Enemies to have 1-5 lives then maybe?"
+        Enemy::new_random(3),
+        // .with_shooting_range(250.)
+        // .with_attack(EnemyAttack {
+        //     cooldown_timer: Timer::from_seconds(1.5, TimerMode::Repeating),
+        //     duration: Timer::from_seconds(4.5, TimerMode::Once),
+        //     shooting_pattern: vec![ShootingPattern::Straight],
+        // }), // GDD "Enemies to have 1-5 lives then maybe?"
         AseAnimation {
             animation: Animation::tag("Idle")
                 .with_repeat(AnimationRepeat::Loop)
@@ -393,7 +393,7 @@ pub fn eye_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     let basic_enemy_collision_radius: f32 = 12.;
     (
         Name::new("Basic Enemy"),
-        Enemy::new_random(5) // GDD "Enemies to have 1-5 lives then maybe?"
+        Enemy::new_random(6) // GDD "Enemies to have 1-5 lives then maybe?"
             .with_shooting_range(300.)
             .with_attack(EnemyAttack {
                 cooldown_timer: Timer::from_seconds(0.5, TimerMode::Repeating),
@@ -429,7 +429,7 @@ pub fn snake_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     let basic_enemy_collision_radius: f32 = 12.;
     (
         Name::new("Snake Enemy"),
-        Enemy::new_random(5), // GDD "Enemies to have 1-5 lives then maybe?"
+        Enemy::new_random(9), // GDD "Enemies to have 1-5 lives then maybe?"
         AseAnimation {
             animation: Animation::tag("Idle")
                 .with_repeat(AnimationRepeat::Loop)
@@ -452,7 +452,7 @@ pub fn narak_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     let basic_enemy_collision_radius: f32 = 12.;
     (
         Name::new("Narak Enemy"),
-        Enemy::new_random(5)
+        Enemy::new_random(12)
             .with_shooting_range(400.)
             .with_attack(EnemyAttack {
                 cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
