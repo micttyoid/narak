@@ -54,33 +54,38 @@ fn spawn_credits_menu(mut commands: Commands, bg_assets: Res<InteractionAssets>)
 }
 
 fn created_by() -> impl Bundle {
-    grid(vec![
-        ["cabycat", "Art, UI"],
-        ["Facu Alvarez", "Music, SFX"],
-        ["izarma", "Programming, UI"],
-        ["Luke Yoo", "Programming"],
-    ])
+    grid(
+        vec![
+            ["cabycat", "Art, UI"],
+            ["Facu Alvarez", "Music, SFX"],
+            ["Luke Yoo & izarma", "Programming"],
+        ],
+        24.0,
+    )
 }
 
 fn assets() -> impl Bundle {
-    grid(vec![
-        ["BoldPixels font", "CC BY-SA 4.0 by YukiPixels"], // using font of "CC BY-SA 4.0" does not require your project to be licensed under CC BY-SA. Only modifications to the font are affected.
-        ["Button SFX", "CC0 by Jaszunio15"],
-        ["Clinks", "CC0 by Brian MacIntosh"],
-        ["Music", "CC BY 3.0 by Kevin MacLeod"],
-        [
-            "Samarkan font",
-            "All rights reserved by Titivillus Foundry/Ethel Enterprises",
+    grid(
+        vec![
+            ["BoldPixels font", "CC BY-SA 4.0 by YukiPixels"], // using font of "CC BY-SA 4.0" does not require your project to be licensed under CC BY-SA. Only modifications to the font are affected.
+            ["Button SFX", "CC0 by Jaszunio15"],
+            ["Clinks", "CC0 by Brian MacIntosh"],
+            ["Music", "CC BY 3.0 by Kevin MacLeod"],
+            [
+                "Samarkan font",
+                "All rights reserved by Titivillus Foundry/Ethel Enterprises",
+            ],
+            ["Throw", "CC0 by qubodup"],
+            [
+                "Bevy logo",
+                "All rights reserved by the Bevy Foundation, permission granted for splash screen use when unmodified",
+            ],
         ],
-        ["Throw", "CC0 by qubodup"],
-        [
-            "Bevy logo",
-            "All rights reserved by the Bevy Foundation, permission granted for splash screen use when unmodified",
-        ],
-    ])
+        18.0,
+    )
 }
 
-fn grid(content: Vec<[&'static str; 2]>) -> impl Bundle {
+fn grid(content: Vec<[&'static str; 2]>, font_size: f32) -> impl Bundle {
     (
         Name::new("Grid"),
         Node {
@@ -91,9 +96,9 @@ fn grid(content: Vec<[&'static str; 2]>) -> impl Bundle {
             ..default()
         },
         Children::spawn(SpawnIter(content.into_iter().flatten().enumerate().map(
-            |(i, text)| {
+            move |(i, text)| {
                 (
-                    widget::label(text),
+                    widget::label_with_size(text, font_size.clone()),
                     Node {
                         justify_self: if i.is_multiple_of(2) {
                             JustifySelf::End

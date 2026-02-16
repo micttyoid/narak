@@ -114,7 +114,7 @@ pub fn tutorial_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     (
         Name::new(TUTORIAL_BOSS_NAME),
         Boss,
-        Enemy::new_random(1),
+        Enemy::new_random(3),
         AseAnimation {
             animation: Animation::tag("Idle")
                 .with_repeat(AnimationRepeat::Loop)
@@ -175,36 +175,23 @@ pub fn gate_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
 
 // boss 2 HP 12
 pub fn eye_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
-    let basic_enemy_collision_radius: f32 = 12.;
+    let basic_enemy_collision_radius: f32 = 32.;
     (
         Name::new(MAYA_NAME),
         Boss,
-        Enemy::new_random(1)
-            .with_shooting_range(300.)
+        Enemy::new_random(12)
+            .with_shooting_range(250.)
             .with_attack(EnemyAttack {
-                cooldown_timer: Timer::from_seconds(0.2, TimerMode::Repeating),
-                duration: Timer::from_seconds(1.0, TimerMode::Once),
-                shooting_pattern: vec![
-                    ShootingPattern::Flank {
-                        angle: 45.0_f32.to_radians(),
-                    },
-                    ShootingPattern::Straight,
-                ],
-            })
-            .with_attack(EnemyAttack {
-                cooldown_timer: Timer::from_seconds(0.5, TimerMode::Repeating),
-                duration: Timer::from_seconds(2.0, TimerMode::Once),
-                shooting_pattern: vec![ShootingPattern::Spread {
-                    count: 6,
-                    arc: 90.0_f32.to_radians(),
-                }],
+                cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
+                duration: Timer::from_seconds(3.0, TimerMode::Once),
+                shooting_pattern: vec![ShootingPattern::Ring { count: 9 }],
             })
             .with_attack(EnemyAttack {
                 cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
                 duration: Timer::from_seconds(3.0, TimerMode::Once),
                 shooting_pattern: vec![ShootingPattern::Random {
                     count: 9,
-                    arc: 60.0_f32.to_radians(),
+                    arc: 10.0_f32.to_radians(),
                 }],
             }),
         AseAnimation {
@@ -227,11 +214,11 @@ pub fn eye_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
 
 // boss 3 HP 24
 pub fn elephant_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
-    let basic_enemy_collision_radius: f32 = 12.;
+    let basic_enemy_collision_radius: f32 = 32.;
     (
         Name::new(MURA_NAME),
         Boss,
-        Enemy::new_random(1)
+        Enemy::new_random(18)
             .with_shooting_range(400.)
             .with_attack(EnemyAttack {
                 cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
@@ -245,15 +232,28 @@ pub fn elephant_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
             })
             .with_attack(EnemyAttack {
                 cooldown_timer: Timer::from_seconds(0.5, TimerMode::Repeating),
-                duration: Timer::from_seconds(5.0, TimerMode::Once),
-                shooting_pattern: vec![ShootingPattern::Ring { count: 9 }],
+                duration: Timer::from_seconds(1.0, TimerMode::Once),
+                shooting_pattern: vec![
+                    ShootingPattern::Flank {
+                        angle: 45.0_f32.to_radians(),
+                    },
+                    ShootingPattern::Straight,
+                ],
+            })
+            .with_attack(EnemyAttack {
+                cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
+                duration: Timer::from_seconds(2.0, TimerMode::Once),
+                shooting_pattern: vec![ShootingPattern::Spread {
+                    count: 4,
+                    arc: 90.0_f32.to_radians(),
+                }],
             })
             .with_attack(EnemyAttack {
                 cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
                 duration: Timer::from_seconds(3.0, TimerMode::Once),
                 shooting_pattern: vec![ShootingPattern::Random {
-                    count: 9,
-                    arc: 90.0_f32.to_radians(),
+                    count: 5,
+                    arc: 60.0_f32.to_radians(),
                 }],
             }),
         AseAnimation {
@@ -276,11 +276,11 @@ pub fn elephant_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
 
 // boss 4 HP 48
 pub fn son_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
-    let basic_enemy_collision_radius: f32 = 12.;
+    let basic_enemy_collision_radius: f32 = 24.;
     (
         Name::new(NARAK_NAME),
         Boss,
-        Enemy::new_random(1)
+        Enemy::new_random(48)
             .with_shooting_range(250.)
             .with_attack(EnemyAttack {
                 cooldown_timer: Timer::from_seconds(0.5, TimerMode::Repeating),
@@ -300,7 +300,7 @@ pub fn son_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
                 duration: Timer::from_seconds(3.0, TimerMode::Once),
                 shooting_pattern: vec![
                     ShootingPattern::Spread {
-                        count: 6,
+                        count: 4,
                         arc: 90.0_f32.to_radians(),
                     },
                     ShootingPattern::Ring { count: 4 },

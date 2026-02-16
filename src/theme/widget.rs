@@ -64,6 +64,16 @@ pub fn label(text: impl Into<String>) -> impl Bundle {
     )
 }
 
+/// A simple text label with custom size.
+pub fn label_with_size(text: impl Into<String>, size: f32) -> impl Bundle {
+    (
+        Name::new("Label"),
+        Text(text.into()),
+        TextFont::from_font_size(size),
+        TextColor(LABEL_TEXT),
+    )
+}
+
 /// A large rounded button with text and an action defined as an [`Observer`].
 pub fn button<E, B, M, I>(text: impl Into<String>, action: I) -> impl Bundle
 where

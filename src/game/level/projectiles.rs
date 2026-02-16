@@ -156,7 +156,7 @@ pub fn enemy_basic_bullet<HostilityComponent: Component + Default>(
     color: Color,
 ) -> impl Bundle {
     let lifespan_projectile_collider_radius: f32 = 2.;
-    let projectile_life: f32 = 3.0; // seconds
+    let projectile_life: f32 = 1.5; // seconds
     let speed: f32 = 100.0;
 
     let new_xy = (lifespan_projectile_collider_radius + thrower_radius + 1.0e-3) * direction + xy;
@@ -165,7 +165,7 @@ pub fn enemy_basic_bullet<HostilityComponent: Component + Default>(
         Projectile {
             direction,
             dues: vec![
-                Due::BounceDown(3),
+                Due::BounceDown(2),
                 Due::Lifespan(Timer::from_seconds(projectile_life, TimerMode::Once)),
             ],
         },
@@ -196,7 +196,7 @@ pub fn boss_basic_bullet<HostilityComponent: Component + Default>(
     anim_assets: &AnimationAssets,
     color: Color,
 ) -> impl Bundle {
-    let lifespan_projectile_collider_radius: f32 = 4.;
+    let lifespan_projectile_collider_radius: f32 = 1.5;
     let projectile_life: f32 = 4.0; // seconds
     let speed: f32 = 100.0;
 
@@ -206,7 +206,7 @@ pub fn boss_basic_bullet<HostilityComponent: Component + Default>(
         Projectile {
             direction,
             dues: vec![
-                Due::BounceDown(4),
+                Due::BounceDown(2),
                 Due::Lifespan(Timer::from_seconds(projectile_life, TimerMode::Once)),
             ],
         },

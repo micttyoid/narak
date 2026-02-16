@@ -364,13 +364,20 @@ pub fn basic_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     let basic_enemy_collision_radius: f32 = 12.;
     (
         Name::new("Basic Enemy"),
-        Enemy::new_random(3),
-        // .with_shooting_range(250.)
-        // .with_attack(EnemyAttack {
-        //     cooldown_timer: Timer::from_seconds(1.5, TimerMode::Repeating),
-        //     duration: Timer::from_seconds(4.5, TimerMode::Once),
-        //     shooting_pattern: vec![ShootingPattern::Straight],
-        // }), // GDD "Enemies to have 1-5 lives then maybe?"
+        Enemy::new_random(3)
+            .with_shooting_range(400.)
+            .with_attack(EnemyAttack {
+                cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
+                duration: Timer::from_seconds(2.0, TimerMode::Once),
+                shooting_pattern: vec![ShootingPattern::Straight],
+            })
+            .with_attack(EnemyAttack {
+                cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
+                duration: Timer::from_seconds(2.0, TimerMode::Once),
+                shooting_pattern: vec![ShootingPattern::Flank {
+                    angle: 22.5_f32.to_radians(),
+                }],
+            }),
         AseAnimation {
             animation: Animation::tag("Idle")
                 .with_repeat(AnimationRepeat::Loop)
@@ -392,20 +399,18 @@ pub fn basic_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
 pub fn eye_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     let basic_enemy_collision_radius: f32 = 12.;
     (
-        Name::new("Basic Enemy"),
+        Name::new("Eye Enemy"),
         Enemy::new_random(6) // GDD "Enemies to have 1-5 lives then maybe?"
             .with_shooting_range(300.)
             .with_attack(EnemyAttack {
-                cooldown_timer: Timer::from_seconds(0.5, TimerMode::Repeating),
-                duration: Timer::from_seconds(2.0, TimerMode::Once),
-                shooting_pattern: vec![ShootingPattern::Straight],
+                cooldown_timer: Timer::from_seconds(2.8, TimerMode::Repeating),
+                duration: Timer::from_seconds(3.0, TimerMode::Once),
+                shooting_pattern: vec![ShootingPattern::Ring { count: 5 }],
             })
             .with_attack(EnemyAttack {
                 cooldown_timer: Timer::from_seconds(0.2, TimerMode::Repeating),
-                duration: Timer::from_seconds(2.0, TimerMode::Once),
-                shooting_pattern: vec![ShootingPattern::Flank {
-                    angle: 22.5_f32.to_radians(),
-                }],
+                duration: Timer::from_seconds(0.6, TimerMode::Once),
+                shooting_pattern: vec![ShootingPattern::Straight],
             }),
         AseAnimation {
             animation: Animation::tag("Idle")
@@ -429,7 +434,21 @@ pub fn snake_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     let basic_enemy_collision_radius: f32 = 12.;
     (
         Name::new("Snake Enemy"),
-        Enemy::new_random(9), // GDD "Enemies to have 1-5 lives then maybe?"
+        Enemy::new_random(9)
+            .with_shooting_range(250.)
+            .with_attack(EnemyAttack {
+                cooldown_timer: Timer::from_seconds(2.0, TimerMode::Repeating),
+                duration: Timer::from_seconds(4.0, TimerMode::Once),
+                shooting_pattern: vec![ShootingPattern::Ring { count: 8 }],
+            })
+            .with_attack(EnemyAttack {
+                cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
+                duration: Timer::from_seconds(4.0, TimerMode::Once),
+                shooting_pattern: vec![ShootingPattern::Spread {
+                    count: 5,
+                    arc: 60.0_f32.to_radians(), // Shotgun spread
+                }],
+            }),
         AseAnimation {
             animation: Animation::tag("Idle")
                 .with_repeat(AnimationRepeat::Loop)
