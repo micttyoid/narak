@@ -290,9 +290,6 @@ fn on_collision_enemy(
     // NOTE: nothing for enemy-to-enemy collision
 }
 
-/// Speed multiplier applied to the player projectile on each bounce.
-const BOUNCE_SPEED_MULTIPLIER: f32 = 1.2;
-
 fn on_collision_projectile_with_something_else(
     commands: &mut Commands,
     anim_assets: &Res<AnimationAssets>,
