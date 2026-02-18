@@ -2,7 +2,10 @@ use crate::{
     PausableSystems,
     game::{
         animation::AnimationAssets,
-        level::enemies::{Enemy, EnemyAttack, Move, ShootingPattern},
+        level::{
+            enemies::Enemy,
+            enemy_behavior::{EnemyAttack, Move, ShootingPattern},
+        },
         movement::ScreenWrap,
         player::PLAYER_Z_TRANSLATION,
     },

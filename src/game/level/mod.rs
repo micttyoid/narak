@@ -1,5 +1,6 @@
 pub mod bosses;
 pub mod enemies;
+pub mod enemy_behavior;
 pub mod gameplay_ui;
 pub mod projectiles;
 
@@ -28,7 +29,7 @@ pub(super) fn plugin(app: &mut App) {
     app.load_resource::<LevelAssets>()
         .init_state::<Level>()
         .add_plugins((
-            enemies::plugin,
+            enemy_behavior::plugin,
             projectiles::plugin,
             gameplay_ui::plugin,
             bosses::plugin,
