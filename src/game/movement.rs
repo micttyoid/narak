@@ -95,14 +95,23 @@ impl CollisionHooks for PassthroughHook<'_, '_> {
     }
 }
 
+/// Collision handling; runs in FixedUpdate. [`restore_ammo`] must run after this
+/// so ammo is restored when friendly projectiles are despawned on hit.
 #[cfg_attr(any(), rustfmt::skip)]
-fn on_collision(
+pub(crate) fn on_collision(
     mut commands: Commands,
     anim_assets: Res<AnimationAssets>,
     mut collision_reader: MessageReader<CollisionStart>,
     mut enemy_query: Query<(Entity, &mut Enemy, Option<&Boss>, Option<&Name>)>,
     mut player_query: Query<(Entity, &mut Player)>,
-    mut projectile_query: Query<(Entity, &mut Projectile, &mut Transform, Has<Friendly>, Has<Hostile>)>,
+    mut projectile_query: Query<(
+        Entity,
+        &mut Projectile,
+        &mut Transform,
+        &mut LinearVelocity,
+        Has<Friendly>,
+        Has<Hostile>,
+    )>,
     mut something_else_query: Query<&ProjectilePassthrough>,
 ) {
     for msg in collision_reader.read() {
@@ -143,6 +152,7 @@ fn on_collision_player(
         Entity,
         &mut Projectile,
         &mut Transform,
+        &mut LinearVelocity,
         Has<Friendly>,
         Has<Hostile>,
     )>,
@@ -153,7 +163,7 @@ fn on_collision_player(
 ) -> bool {
     // c1 is player and c2 is projectile
     if let Ok((player_entity, mut player)) = player_query.get_mut(*c1) {
-        if let Ok((proj_entity, _, _, _, has_hostile)) = projectile_query.get(*c2) {
+        if let Ok((proj_entity, _, _, _, _, has_hostile)) = projectile_query.get(*c2) {
             if has_hostile {
                 commands.entity(player_entity).insert(Red::default());
                 player.life = player.life.saturating_sub(1);
@@ -186,6 +196,7 @@ fn on_collision_enemy(
         Entity,
         &mut Projectile,
         &mut Transform,
+        &mut LinearVelocity,
         Has<Friendly>,
         Has<Hostile>,
     )>,
@@ -196,7 +207,7 @@ fn on_collision_enemy(
 ) -> bool {
     // c1 is enemy and c2 is projectile
     if let Ok((enemy_entity, mut enemy, opt_boss, opt_name)) = enemy_query.get_mut(*c1) {
-        if let Ok((proj_entity, _, _, has_friendly, _)) = projectile_query.get(*c2) {
+        if let Ok((proj_entity, _, _, _, has_friendly, _)) = projectile_query.get(*c2) {
             if has_friendly {
                 // Enemy got hit!
                 enemy.life = enemy.life.saturating_sub(1);
@@ -286,6 +297,7 @@ fn on_collision_projectile_with_something_else(
         Entity,
         &mut Projectile,
         &mut Transform,
+        &mut LinearVelocity,
         Has<Friendly>,
         Has<Hostile>,
     )>,
@@ -293,31 +305,37 @@ fn on_collision_projectile_with_something_else(
     c1: &Entity,
     c2: &Entity,
 ) {
-    if let Ok((proj_entity, mut projectile, mut transform, has_friendly, _)) =
+    if let Ok((proj_entity, mut projectile, mut transform, mut velocity, has_friendly, _)) =
         projectile_query.get_mut(*c1)
     {
         if let Ok(projectile_passthrough) = something_else_query.get_mut(*c2) {
             // nothing (replaced with hook)
         }
-        for due in projectile.dues.iter_mut() {
-            match due {
-                Due::BounceDown(count) => {
-                    match count {
-                        1 => {
-                            // This goes to zero: remove and restore
-                            commands.entity(proj_entity).despawn();
-                        }
-                        0 => {
-                            //panic!("Bounce Down was not set correctly");
-                            commands.entity(proj_entity).despawn(); // should not happen
-                        }
-                        _ => {
-                            *count = count.saturating_sub(1);
+        if has_friendly {
+            for due in projectile.dues.iter_mut() {
+                match due {
+                    Due::BounceDown(count) => {
+                        match count {
+                            1 => {
+                                // Last bounce: stop the chakram then remove and restore
+                                velocity.0 = Vec2::ZERO;
+                                // commands.entity(proj_entity).despawn();
+                            }
+                            0 => {
+                                //panic!("Bounce Down was not set correctly");
+                                commands.entity(proj_entity).despawn(); // should not happen
+                            }
+                            _ => {
+                                *count = count.saturating_sub(1);
+                                velocity.0 *= BOUNCE_SPEED_MULTIPLIER;
+                            }
                         }
                     }
+                    _ => {}
                 }
-                _ => {}
             }
+        } else {
+            commands.entity(proj_entity).despawn();
         }
     }
 }

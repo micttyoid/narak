@@ -16,7 +16,14 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(Update, update_sources.in_set(PausableSystems));
     app.add_systems(
         FixedUpdate,
-        (update_cools, update_projectiles, restore_ammo).in_set(PausableSystems),
+        (update_cools, update_projectiles)
+            .in_set(PausableSystems)
+            .chain(),
+    );
+    // Run after collision so we see Friendly removals when projectiles hit enemies/walls.
+    app.add_systems(
+        FixedUpdate,
+        restore_ammo.in_set(PausableSystems).after(on_collision),
     );
 }
 
@@ -156,18 +163,19 @@ pub fn enemy_basic_bullet<HostilityComponent: Component + Default>(
     color: Color,
 ) -> impl Bundle {
     let lifespan_projectile_collider_radius: f32 = 2.;
-    let projectile_life: f32 = 1.5; // seconds
-    let speed: f32 = 100.0;
+    let projectile_life: f32 = 2.; // seconds
+    let speed: f32 = 40.0;
 
     let new_xy = (lifespan_projectile_collider_radius + thrower_radius + 1.0e-3) * direction + xy;
     (
         Name::new("Enemy Basic Projectile"),
         Projectile {
             direction,
-            dues: vec![
-                Due::BounceDown(2),
-                Due::Lifespan(Timer::from_seconds(projectile_life, TimerMode::Once)),
-            ],
+            // Enemy bullets should not bounce; just live for a short time.
+            dues: vec![Due::Lifespan(Timer::from_seconds(
+                projectile_life,
+                TimerMode::Once,
+            ))],
         },
         HostilityComponent::default(),
         LinearVelocity(speed * direction.as_vec2()),
@@ -178,7 +186,7 @@ pub fn enemy_basic_bullet<HostilityComponent: Component + Default>(
             color,
             ..default()
         },
-        ScreenWrap,
+        // ScreenWrap,
         LockedAxes::new().lock_rotation(),
         Transform::from_xyz(new_xy.x, new_xy.y, PROJECTILE_Z_TRANSLATION),
         RigidBody::Dynamic,
@@ -197,18 +205,19 @@ pub fn boss_basic_bullet<HostilityComponent: Component + Default>(
     color: Color,
 ) -> impl Bundle {
     let lifespan_projectile_collider_radius: f32 = 1.5;
-    let projectile_life: f32 = 4.0; // seconds
-    let speed: f32 = 100.0;
+    let projectile_life: f32 = 3.0; // seconds
+    let speed: f32 = 10.0;
 
     let new_xy = (lifespan_projectile_collider_radius + thrower_radius + 1.0e-3) * direction + xy;
     (
         Name::new("Enemy Basic Projectile"),
         Projectile {
             direction,
-            dues: vec![
-                Due::BounceDown(2),
-                Due::Lifespan(Timer::from_seconds(projectile_life, TimerMode::Once)),
-            ],
+            // Boss bullets should not bounce; just live for a short time.
+            dues: vec![Due::Lifespan(Timer::from_seconds(
+                projectile_life,
+                TimerMode::Once,
+            ))],
         },
         HostilityComponent::default(),
         LinearVelocity(speed * direction.as_vec2()),
