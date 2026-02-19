@@ -2,7 +2,10 @@ use crate::{
     PausableSystems,
     game::{
         animation::AnimationAssets,
-        level::enemies::{Enemy, EnemyAttack, Move, ShootingPattern},
+        level::{
+            enemies::Enemy,
+            enemy_behavior::{EnemyAttack, Move, ShootingPattern},
+        },
         movement::ScreenWrap,
         player::PLAYER_Z_TRANSLATION,
     },
@@ -114,7 +117,16 @@ pub fn tutorial_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     (
         Name::new(TUTORIAL_BOSS_NAME),
         Boss,
-        Enemy::new_random(3),
+        Enemy::new_random(3)
+            .with_shooting_range(300.)
+            .with_attack(EnemyAttack {
+                cooldown_timer: Timer::from_seconds(0.2, TimerMode::Repeating),
+                duration: Timer::from_seconds(1.1, TimerMode::Once),
+                shooting_pattern: vec![ShootingPattern::Sweep {
+                    arc: 90.0_f32.to_radians(),
+                    clockwise: true,
+                }],
+            }),
         AseAnimation {
             animation: Animation::tag("Idle")
                 .with_repeat(AnimationRepeat::Loop)
