@@ -111,7 +111,7 @@ fn enemy_shooting_system(
                 let dir = (player_pos - enemy_pos).normalize();
                 let mut directions = Vec::new();
                 for pattern in &current_attack.shooting_pattern {
-                    directions.extend(get_shooting_patterns(dir, pattern));
+                    directions.extend(get_shooting_patterns(dir, pattern, current_attack));
                 }
                 for direction in directions {
                     // Generate a random color for each bullet
@@ -200,10 +200,15 @@ pub enum ShootingPattern {
     Ring { count: usize },
     Flank { angle: f32 },
     Random { count: usize, arc: f32 },
+    Sweep { arc: f32, clockwise: bool },
 }
 
 /// Shooting Patterns
-fn get_shooting_patterns(dir: Vec2, pattern: &ShootingPattern) -> Vec<Dir2> {
+fn get_shooting_patterns(
+    dir: Vec2,
+    pattern: &ShootingPattern,
+    current_attack: &EnemyAttack,
+) -> Vec<Dir2> {
     let base_angle = dir.to_angle();
     match pattern {
         ShootingPattern::Straight => vec![safe_dir(dir)],
@@ -250,6 +255,33 @@ fn get_shooting_patterns(dir: Vec2, pattern: &ShootingPattern) -> Vec<Dir2> {
                 dirs.push(safe_dir(Vec2::from_angle(base_angle + offset)));
             }
             dirs
+        }
+        ShootingPattern::Sweep { arc, clockwise } => {
+            // store Sweep delay from cooldown and total_sweeps by dividing it by duration
+            let duration_secs = current_attack.duration.duration().as_secs_f32();
+            let cooldown_secs = current_attack.cooldown_timer.duration().as_secs_f32();
+            let total_sweeps = (duration_secs / cooldown_secs).max(1.0) as usize;
+
+            // Derive which shot we're on from elapsed time
+            let elapsed_secs = current_attack.duration.elapsed().as_secs_f32();
+            let shot_index =
+                ((elapsed_secs / cooldown_secs) as usize).min(total_sweeps.saturating_sub(1));
+
+            let step = if total_sweeps > 1 {
+                arc / (total_sweeps - 1) as f32
+            } else {
+                0.0
+            };
+
+            // false: left → right (+arc/2 start sweeping right)
+            // true:  right → left (-arc/2 start sweeping left)
+            let angle_offset = if *clockwise {
+                (arc / 2.0) - step * shot_index as f32
+            } else {
+                -(arc / 2.0) + step * shot_index as f32
+            };
+            let sweep_dir = Vec2::from_angle(base_angle + angle_offset);
+            vec![safe_dir(sweep_dir)]
         }
     }
 }
