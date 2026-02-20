@@ -1,15 +1,15 @@
 //! The credits menu.
 
-use bevy::{
-    ecs::spawn::SpawnIter, input::common_conditions::input_just_pressed, prelude::*, reflect::Enum,
-};
+use bevy::{ecs::spawn::SpawnIter, input::common_conditions::input_just_pressed, prelude::*};
 
 use crate::{
     asset_tracking::LoadResource,
     audio::music,
-    menus::Menu,
     screens::Screen,
-    theme::{interaction::InteractionAssets, prelude::*},
+    ui::{
+        menus::Menu,
+        theme::{interaction::InteractionAssets, prelude::*},
+    },
 };
 
 pub(super) fn plugin(app: &mut App) {

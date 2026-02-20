@@ -5,9 +5,11 @@
 use bevy::{audio::Volume, input::common_conditions::input_just_pressed, prelude::*};
 
 use crate::{
-    menus::Menu,
     screens::Screen,
-    theme::{interaction::InteractionAssets, palette::BACKGROUND_DARK, prelude::*},
+    ui::{
+        menus::Menu,
+        theme::{interaction::InteractionAssets, prelude::*},
+    },
 };
 
 pub(super) fn plugin(app: &mut App) {

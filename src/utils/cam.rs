@@ -1,13 +1,7 @@
+use bevy::image::{ImageLoaderSettings, ImageSampler};
 use bevy::{camera::*, prelude::*};
-use bevy::{
-    image::{ImageLoaderSettings, ImageSampler},
-    prelude::*,
-};
 
-use crate::{
-    asset_tracking::ResourceHandles, game::player::Player, menus::Menu, screens::Screen,
-    theme::widget,
-};
+use crate::game::player::Player;
 
 pub const FOLLOW_CAMERA_TRESHOLD: f32 = 100.0; // Determine based on the character speed
 pub const FOLLOW_CAMERA_MAX_SPEED: f32 = 1000.0;

@@ -2,7 +2,7 @@
 
 use bevy::prelude::*;
 
-use crate::{menus::Menu, screens::Screen};
+use crate::{screens::Screen, ui::menus::Menu};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Title), open_main_menu);

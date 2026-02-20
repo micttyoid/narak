@@ -3,9 +3,11 @@
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 
 use crate::{
-    menus::Menu,
     screens::Screen,
-    theme::{palette::BACKGROUND_DARK, widget},
+    ui::{
+        menus::Menu,
+        theme::{palette::BACKGROUND_DARK, widget},
+    },
 };
 
 pub(super) fn plugin(app: &mut App) {
