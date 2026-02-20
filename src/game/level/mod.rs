@@ -15,9 +15,8 @@ use crate::{
         level::bosses::{phase1_boss, phase2_boss, phase3_boss, tutorial_boss},
         player::{PLAYER_Z_TRANSLATION, player},
     },
-    menus::Menu,
     screens::Screen,
-    theme::palette::LABEL_TEXT,
+    ui::{menus::Menu, theme::palette::LABEL_TEXT},
 };
 
 pub(super) fn plugin(app: &mut App) {

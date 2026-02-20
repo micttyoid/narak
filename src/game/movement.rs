@@ -317,7 +317,6 @@ fn on_collision_projectile_with_something_else(
                             }
                             _ => {
                                 *count = count.saturating_sub(1);
-                                velocity.0 *= BOUNCE_SPEED_MULTIPLIER;
                             }
                         }
                     }

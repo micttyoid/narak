@@ -1,25 +1,28 @@
 use bevy::prelude::*;
 
-use bevy::{ecs::spawn::SpawnIter, input::common_conditions::input_just_pressed, prelude::*};
-
 use crate::{
     asset_tracking::LoadResource,
     audio::music,
-    menus::Menu,
     screens::Screen,
-    theme::{interaction::InteractionAssets, palette::BACKGROUND_DARK, widget},
+    ui::{
+        menus::Menu,
+        theme::{interaction::InteractionAssets, palette::BACKGROUND_DARK, widget},
+    },
 };
 
 pub(super) fn plugin(app: &mut App) {
-    app.load_resource::<WinAssets>();
-    app.add_systems(OnEnter(Menu::Win), (spawn_win, start_win_music));
+    app.load_resource::<GameOverAssets>();
+    app.add_systems(
+        OnEnter(Menu::GameOver),
+        (spawn_game_over, start_game_over_music),
+    );
 }
 
-fn spawn_win(mut cmd: Commands, assets: Res<InteractionAssets>) {
+fn spawn_game_over(mut cmd: Commands, assets: Res<InteractionAssets>) {
     cmd.spawn((
-        widget::ui_root("All cleared"),
+        widget::ui_root("Game Over Menu"),
         GlobalZIndex(2),
-        DespawnOnExit(Menu::Win),
+        DespawnOnExit(Menu::GameOver),
         children![
             (
                 Name::new("Background Image"),
@@ -47,8 +50,8 @@ fn spawn_win(mut cmd: Commands, assets: Res<InteractionAssets>) {
                 },
                 BackgroundColor(BACKGROUND_DARK.with_alpha(0.6)),
                 children![
-                    widget::header("Narak Slayed"),
-                    widget::button("Credits", show_credits),
+                    widget::header("You Died"),
+                    widget::button("Retry", retry_level),
                     widget::button("Quit to title", return_to_main),
                 ],
             )
@@ -58,25 +61,25 @@ fn spawn_win(mut cmd: Commands, assets: Res<InteractionAssets>) {
 
 #[derive(Resource, Asset, Clone, Reflect)]
 #[reflect(Resource)]
-struct WinAssets {
+struct GameOverAssets {
     #[dependency]
     music: Handle<AudioSource>,
 }
 
-impl FromWorld for WinAssets {
+impl FromWorld for GameOverAssets {
     fn from_world(world: &mut World) -> Self {
         let assets = world.resource::<AssetServer>();
         Self {
-            music: assets.load("audio/sound_effects/ui/win.ogg"),
+            music: assets.load("audio/sound_effects/ui/lose.ogg"),
         }
     }
 }
 
-fn start_win_music(mut commands: Commands, win_assets: Res<WinAssets>) {
+fn start_game_over_music(mut commands: Commands, game_over_assets: Res<GameOverAssets>) {
     commands.spawn((
-        Name::new("Credits Music"),
-        DespawnOnExit(Menu::Win),
-        music(win_assets.music.clone()),
+        Name::new("Game Over Music"),
+        DespawnOnExit(Menu::GameOver),
+        music(game_over_assets.music.clone()),
     ));
 }
 
@@ -84,6 +87,6 @@ fn return_to_main(_: On<Pointer<Click>>, mut next_screen: ResMut<NextState<Scree
     next_screen.set(Screen::Title);
 }
 
-fn show_credits(_: On<Pointer<Click>>, mut next_menu: ResMut<NextState<Menu>>) {
-    next_menu.set(Menu::Credits);
+fn retry_level(_: On<Pointer<Click>>, mut next_screen: ResMut<NextState<Screen>>) {
+    next_screen.set(Screen::Loading);
 }

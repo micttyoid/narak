@@ -2,8 +2,8 @@ use bevy::prelude::*;
 
 use crate::{
     game::level::{Level, bosses::BossPhase, enemies::Enemy},
-    menus::Menu,
     screens::Screen,
+    ui::menus::Menu,
 };
 
 pub(super) fn plugin(app: &mut App) {
@@ -31,7 +31,7 @@ fn spawn_healthbar(mut cmd: Commands) {
             ..default()
         },
         DespawnOnExit(Screen::Gameplay),
-        DespawnOnEnter(Menu::Credits), // for when credits menu is opened at the end of gameplay
+        DespawnOnEnter(Menu::Win), // for when credits menu is opened at the end of gameplay
         children![(
             Node {
                 width: Val::Px(400.0),

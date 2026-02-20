@@ -4,9 +4,11 @@ use bevy::prelude::*;
 
 use crate::{
     asset_tracking::ResourceHandles,
-    menus::Menu,
     screens::Screen,
-    theme::{interaction::InteractionAssets, palette::BACKGROUND_DARK, widget},
+    ui::{
+        menus::Menu,
+        theme::{interaction::InteractionAssets, palette::BACKGROUND_DARK, widget},
+    },
 };
 
 pub(super) fn plugin(app: &mut App) {

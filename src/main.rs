@@ -8,9 +8,7 @@ mod audio;
 #[cfg(feature = "dev")]
 mod dev_tools;
 mod game;
-mod menus;
 mod screens;
-mod theme;
 mod ui;
 mod utils;
 
@@ -22,7 +20,7 @@ use bevy::{
 use avian2d::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 
-use crate::{game::movement::PassthroughHook, theme::palette::BACKGROUND_DARK};
+use crate::{game::movement::PassthroughHook, ui::theme::palette::BACKGROUND_DARK};
 
 //use bevy_ecs_tiled::prelude::*;
 
@@ -90,9 +88,7 @@ impl Plugin for AppPlugin {
             game::plugin,
             #[cfg(feature = "dev")]
             dev_tools::plugin,
-            menus::plugin,
             screens::plugin,
-            theme::plugin,
             ui::plugin,
         ));
 

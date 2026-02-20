@@ -1,8 +1,9 @@
 use bevy::prelude::*;
 
-mod boss_healthbar;
-mod gameplay_ui;
+mod hud;
+pub mod menus;
+pub mod theme;
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_plugins((gameplay_ui::plugin, boss_healthbar::plugin));
+    app.add_plugins((hud::plugin, menus::plugin, theme::plugin));
 }

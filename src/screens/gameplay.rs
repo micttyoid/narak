@@ -1,7 +1,5 @@
 //! The screen state for the main gameplay.
 
-use std::fs::exists;
-
 use avian2d::prelude::{Physics, PhysicsTime};
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 use bevy_aseprite_ultra::prelude::{AseAnimation, ManualTick};
@@ -13,9 +11,8 @@ use crate::{
         level::{Level, bosses::Boss, enemies::Enemy, sfx_intro, spawn_level},
         player::*,
     },
-    menus::Menu,
     screens::Screen,
-    theme::interaction::InteractionAssets,
+    ui::{menus::Menu, theme::interaction::InteractionAssets},
     utils::tiled::spawn_tiled_map,
 };
 

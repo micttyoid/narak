@@ -7,7 +7,13 @@ use bevy::{
     prelude::*,
 };
 
-use crate::theme::{interaction::InteractionPalette, palette::*};
+use crate::ui::theme::{
+    palette::{
+        BUTTON_BACKGROUND, BUTTON_BORDER, BUTTON_HOVERED_BACKGROUND, BUTTON_PRESSED_BACKGROUND,
+        BUTTON_TEXT, HEADER_TEXT, LABEL_TEXT,
+    },
+    prelude::InteractionPalette,
+};
 
 /// A root UI node that fills the window and centers its content.
 pub fn ui_root(name: impl Into<Cow<'static, str>>) -> impl Bundle {
@@ -70,6 +76,20 @@ pub fn label_with_size(text: impl Into<String>, size: f32) -> impl Bundle {
         Name::new("Label"),
         Text(text.into()),
         TextFont::from_font_size(size),
+        TextColor(LABEL_TEXT),
+    )
+}
+
+/// simple text lable with custom font
+pub fn tutorial_label(text: impl Into<String>, font: Handle<Font>) -> impl Bundle {
+    (
+        Name::new("Label"),
+        Text(text.into()),
+        TextFont {
+            font: font,
+            font_size: 20.0,
+            ..default()
+        },
         TextColor(LABEL_TEXT),
     )
 }
