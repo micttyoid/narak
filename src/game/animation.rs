@@ -13,7 +13,7 @@ use crate::{
     audio::sound_effect,
     game::{
         level::{
-            bosses::{GatesAssets, MayaAssets, MuraAssets, NarakAssets},
+            bosses::{Phase1Assets, Phase2Assets, Phase3Assets},
             enemies::{EnemyAssets, EyeEnemyAssets},
             projectiles::ProjectileAssets,
         },
@@ -132,14 +132,7 @@ impl FromWorld for AnimationAssets {
                         assets.load("audio/sound_effects/enemies/eyes/dmg4.ogg"),
                     ],
                 },
-                // boss1
-                gates: GatesAssets {
-                    aseprite: assets.load("textures/chars/boss1.aseprite"),
-                    attacks: vec![],
-                    damages: vec![],
-                },
-                // boss2
-                maya: MayaAssets {
+                phase1: Phase1Assets {
                     aseprite: assets.load("textures/chars/boss2.aseprite"),
                     attacks: vec![
                         assets.load("audio/sound_effects/maya/att1.ogg"),
@@ -155,8 +148,7 @@ impl FromWorld for AnimationAssets {
                     ],
                     idle: assets.load("audio/sound_effects/maya/idle.ogg"),
                 },
-                // boss3
-                mura: MuraAssets {
+                phase2: Phase2Assets {
                     aseprite: assets.load("textures/chars/boss3.aseprite"),
                     attacks: vec![
                         assets.load("audio/sound_effects/mura/att1.ogg"),
@@ -175,8 +167,7 @@ impl FromWorld for AnimationAssets {
                     ],
                     enemy: assets.load("textures/chars/snake.aseprite"),
                 },
-                // boss4
-                narak: NarakAssets {
+                phase3: Phase3Assets {
                     aseprite: assets.load("textures/chars/boss4.aseprite"),
                     attacks: vec![
                         assets.load("audio/sound_effects/narak/att1.ogg"),

@@ -1,7 +1,6 @@
 pub mod bosses;
 pub mod enemies;
 pub mod enemy_behavior;
-pub mod gameplay_ui;
 pub mod projectiles;
 
 use avian2d::prelude::{Physics, PhysicsTime};
@@ -10,14 +9,10 @@ use bevy::{prelude::*, state::state::FreelyMutableState};
 
 use crate::{
     asset_tracking::LoadResource,
-    audio::music,
-    audio::sound_effect,
+    audio::{music, sound_effect},
     game::{
         animation::AnimationAssets,
-        level::{
-            bosses::{elephant_boss, eye_boss, gate_boss, son_boss, tutorial_boss},
-            enemies::{basic_enemy, eye_enemy, narak_enemy, snake_enemy},
-        },
+        level::bosses::{phase1_boss, phase2_boss, phase3_boss, tutorial_boss},
         player::{PLAYER_Z_TRANSLATION, player},
     },
     menus::Menu,
@@ -28,12 +23,7 @@ use crate::{
 pub(super) fn plugin(app: &mut App) {
     app.load_resource::<LevelAssets>()
         .init_state::<Level>()
-        .add_plugins((
-            enemy_behavior::plugin,
-            projectiles::plugin,
-            gameplay_ui::plugin,
-            bosses::plugin,
-        ));
+        .add_plugins((enemy_behavior::plugin, projectiles::plugin, bosses::plugin));
 }
 
 /// GDD "pre defined multiple maps/levels(maybe 4-5?)"
@@ -44,10 +34,9 @@ pub(super) fn plugin(app: &mut App) {
 pub enum Level {
     #[default]
     Tutorial,
-    Gates,
-    Maya,
-    Mura,
-    Narak,
+    Phase1, // 0 to 30 / 135 HP
+    Phase2, // 30 to 75 / 135 HP
+    Phase3, // 75 to 135 / 135 HP
 }
 
 impl SubStates for Level {
@@ -69,16 +58,15 @@ impl States for Level {
 impl FreelyMutableState for Level {}
 
 impl Level {
-    pub const LAST_LEVEL: Level = Level::Narak;
+    pub const LAST_LEVEL: Level = Level::Phase3;
 
     pub fn next(&self) -> Self {
         use Level::*;
         match self {
-            Tutorial => Gates,
-            Gates => Maya,
-            Maya => Mura,
-            Mura => Narak,
-            Narak => Narak,
+            Tutorial => Phase1,
+            Phase1 => Phase2,
+            Phase2 => Phase3,
+            Phase3 => Phase3,
         }
     }
 
@@ -94,10 +82,9 @@ impl Level {
         use Level::*;
         match self {
             Tutorial => 3,
-            Gates => 6,
-            Maya => 9,
-            Mura => 12,
-            Narak => 15,
+            Phase1 => 6,
+            Phase2 => 9,
+            Phase3 => 12,
         }
     }
 }
@@ -108,9 +95,9 @@ pub struct LevelAssets {
     #[dependency]
     music: Handle<AudioSource>,
     #[dependency]
-    ui_assets: Handle<Image>,
+    pub ui_assets: Handle<Image>,
     #[dependency]
-    aim_cursor: Handle<Image>,
+    pub aim_cursor: Handle<Image>,
     #[dependency]
     pub tutorial_assets: Handle<Image>,
     #[dependency]
@@ -138,8 +125,8 @@ pub fn sfx_intro(
 ) {
     use Level::*;
     match current_level.get() {
-        Mura => {
-            commands.spawn(sound_effect(anim_assets.enemies.mura.intro.clone()));
+        Phase2 => {
+            commands.spawn(sound_effect(anim_assets.enemies.phase2.intro.clone()));
         }
         _ => {}
     }
@@ -194,7 +181,7 @@ pub fn spawn_level(
                 )
             ],));
         }
-        Gates => {
+        Phase1 => {
             let player_initial_transform = Vec2::new(-8.0, -211.0);
             commands.entity(lev_entity).insert((children![
                 player(
@@ -203,9 +190,9 @@ pub fn spawn_level(
                     player_initial_transform,
                     current_level.player_stats()
                 ),
-                basic_enemy((66., 100.).into(), &anim_assets),
-                basic_enemy((-131., 210.).into(), &anim_assets),
-                gate_boss((38.3, 449.5).into(), &anim_assets),
+                // basic_enemy((66., 100.).into(), &anim_assets),
+                // basic_enemy((-131., 210.).into(), &anim_assets),
+                phase1_boss((38.3, 449.5).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
                     DespawnOnExit(Menu::None), // To remove at ending such as to [`Menu::Credit`]
@@ -213,7 +200,7 @@ pub fn spawn_level(
                 ),
             ],));
         }
-        Maya => {
+        Phase2 => {
             let player_initial_transform = Vec2::new(-30.0, -360.0);
             commands.entity(lev_entity).insert((children![
                 player(
@@ -222,9 +209,9 @@ pub fn spawn_level(
                     player_initial_transform,
                     current_level.player_stats()
                 ),
-                eye_enemy((150., -20.).into(), &anim_assets),
-                eye_enemy((-150., -20.).into(), &anim_assets),
-                eye_boss((-36.5, 222.0).into(), &anim_assets),
+                // eye_enemy((150., -20.).into(), &anim_assets),
+                // eye_enemy((-150., -20.).into(), &anim_assets),
+                phase2_boss((-36.5, 222.0).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
                     DespawnOnExit(Menu::None),
@@ -232,28 +219,28 @@ pub fn spawn_level(
                 ),
             ],));
         }
-        Mura => {
-            let player_initial_transform = Vec2::new(-160.0, -340.0);
-            commands.entity(lev_entity).insert((children![
-                player(
-                    100.0,
-                    &anim_assets,
-                    player_initial_transform,
-                    current_level.player_stats()
-                ),
-                snake_enemy((-186.5, -53.0).into(), &anim_assets),
-                snake_enemy((104.5, -48.3).into(), &anim_assets),
-                eye_enemy((57.8, -281.8).into(), &anim_assets),
-                eye_enemy((-190.6, 120.6).into(), &anim_assets),
-                elephant_boss((20., 330.).into(), &anim_assets),
-                (
-                    Name::new("Gameplay Music"),
-                    DespawnOnExit(Menu::None),
-                    music(level_assets.music.clone()),
-                ),
-            ],));
-        }
-        Narak => {
+        // Mura => {
+        //     let player_initial_transform = Vec2::new(-160.0, -340.0);
+        //     commands.entity(lev_entity).insert((children![
+        //         player(
+        //             100.0,
+        //             &anim_assets,
+        //             player_initial_transform,
+        //             current_level.player_stats()
+        //         ),
+        //         snake_enemy((-186.5, -53.0).into(), &anim_assets),
+        //         snake_enemy((104.5, -48.3).into(), &anim_assets),
+        //         eye_enemy((57.8, -281.8).into(), &anim_assets),
+        //         eye_enemy((-190.6, 120.6).into(), &anim_assets),
+        //         elephant_boss((20., 330.).into(), &anim_assets),
+        //         (
+        //             Name::new("Gameplay Music"),
+        //             DespawnOnExit(Menu::None),
+        //             music(level_assets.music.clone()),
+        //         ),
+        //     ],));
+        // }
+        Phase3 => {
             let player_initial_transform = Vec2::new(-175.0, -420.0);
             commands.entity(lev_entity).insert((children![
                 player(
@@ -262,12 +249,12 @@ pub fn spawn_level(
                     player_initial_transform,
                     current_level.player_stats()
                 ),
-                narak_enemy((75.3, -333.8).into(), &anim_assets),
-                snake_enemy((-33.6, 112.2).into(), &anim_assets),
-                narak_enemy((-189.5, 282.0).into(), &anim_assets),
-                eye_enemy((152.8, 261.0).into(), &anim_assets),
-                snake_enemy((-186.5, -215.0).into(), &anim_assets),
-                son_boss((0., 400.).into(), &anim_assets),
+                // narak_enemy((75.3, -333.8).into(), &anim_assets),
+                // snake_enemy((-33.6, 112.2).into(), &anim_assets),
+                // narak_enemy((-189.5, 282.0).into(), &anim_assets),
+                // eye_enemy((152.8, 261.0).into(), &anim_assets),
+                // snake_enemy((-186.5, -215.0).into(), &anim_assets),
+                phase3_boss((0., 400.).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
                     DespawnOnExit(Menu::None),

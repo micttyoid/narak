@@ -17,10 +17,9 @@ use bevy_aseprite_ultra::prelude::*;
 
 pub const BOSS_Z_TRANSLATION: f32 = PLAYER_Z_TRANSLATION;
 pub const TUTORIAL_BOSS_NAME: &str = "Tutorial Boss";
-pub const GATES_NAME: &str = "Gate Boss";
-pub const MAYA_NAME: &str = "Eye Boss";
-pub const MURA_NAME: &str = "Elephant Boss";
-pub const NARAK_NAME: &str = "Son Boss";
+pub const PHASE_1_NAME: &str = "Phase 1 Boss";
+pub const PHASE_2_NAME: &str = "Phase 2 Boss";
+pub const PHASE_3_NAME: &str = "Phase 3 Boss";
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
@@ -34,6 +33,42 @@ pub(super) fn plugin(app: &mut App) {
 #[derive(Component)]
 #[require(GameplayLifetime, Enemy)]
 pub struct Boss;
+
+#[derive(Component, Reflect)]
+pub struct BossPhase {
+    pub current_phase: u8, // 1, 2, or 3
+    pub max_hp: u32,       // 30, 45, or 60
+}
+
+impl BossPhase {
+    pub const PHASE_1_HP: u32 = 2; // change to 30
+    pub const PHASE_2_HP: u32 = 3; // change to 45
+    pub const PHASE_3_HP: u32 = 4; // change to 60
+
+    pub fn for_phase(phase: u8) -> Self {
+        let max_hp = match phase {
+            1 => Self::PHASE_1_HP,
+            2 => Self::PHASE_2_HP,
+            3 => Self::PHASE_3_HP,
+            _ => panic!("Invalid boss phase: {}", phase),
+        };
+        Self {
+            current_phase: phase,
+            max_hp,
+        }
+    }
+    pub fn total_hp(&self) -> u32 {
+        Self::PHASE_1_HP + Self::PHASE_2_HP + Self::PHASE_3_HP
+    }
+    pub fn current_base_hp(&self) -> u32 {
+        match self.current_phase {
+            1 => Self::PHASE_2_HP + Self::PHASE_3_HP,
+            2 => Self::PHASE_3_HP,
+            3 => 0,
+            _ => panic!("Invalid boss phase: {}", self.current_phase),
+        }
+    }
+}
 
 fn update_boss_moves(
     time: Res<Time>,
@@ -61,19 +96,9 @@ fn update_boss_moves(
     }
 }
 
-// boss1
+// phase 1
 #[derive(Asset, Clone, Reflect)]
-pub struct GatesAssets {
-    pub aseprite: Handle<Aseprite>,
-    #[dependency]
-    pub attacks: Vec<Handle<AudioSource>>,
-    #[dependency]
-    pub damages: Vec<Handle<AudioSource>>,
-}
-
-// boss2
-#[derive(Asset, Clone, Reflect)]
-pub struct MayaAssets {
+pub struct Phase1Assets {
     pub aseprite: Handle<Aseprite>,
     #[dependency]
     pub attacks: Vec<Handle<AudioSource>>,
@@ -83,9 +108,9 @@ pub struct MayaAssets {
     pub idle: Handle<AudioSource>,
 }
 
-// boss3
+// phase 2
 #[derive(Asset, Clone, Reflect)]
-pub struct MuraAssets {
+pub struct Phase2Assets {
     pub aseprite: Handle<Aseprite>,
     pub enemy: Handle<Aseprite>,
     #[dependency]
@@ -98,9 +123,9 @@ pub struct MuraAssets {
     pub intro: Handle<AudioSource>,
 }
 
-// boss4
+// phase 3
 #[derive(Asset, Clone, Reflect)]
-pub struct NarakAssets {
+pub struct Phase3Assets {
     pub aseprite: Handle<Aseprite>,
     pub enemy: Handle<Aseprite>,
     #[dependency]
@@ -120,11 +145,11 @@ pub fn tutorial_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
         Enemy::new_random(3)
             .with_shooting_range(300.)
             .with_attack(EnemyAttack {
-                cooldown_timer: Timer::from_seconds(0.2, TimerMode::Repeating),
-                duration: Timer::from_seconds(1.1, TimerMode::Once),
+                cooldown_timer: Timer::from_seconds(0.5, TimerMode::Repeating), // delay between each sweep shot
+                duration: Timer::from_seconds(1.0, TimerMode::Once), // total duration of attack
                 shooting_pattern: vec![ShootingPattern::Sweep {
-                    arc: 90.0_f32.to_radians(),
-                    clockwise: true,
+                    arc: 90.0_f32.to_radians(), // angle of the arc in radians
+                    clockwise: true,            // direction
                 }],
             }),
         AseAnimation {
@@ -132,7 +157,7 @@ pub fn tutorial_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
                 .with_repeat(AnimationRepeat::Loop)
                 .with_direction(AnimationDirection::Forward)
                 .with_speed(1.0),
-            aseprite: anim_assets.enemies.mura.enemy.clone(),
+            aseprite: anim_assets.enemies.phase2.enemy.clone(),
         },
         Sprite::default(),
         ScreenWrap,
@@ -145,53 +170,54 @@ pub fn tutorial_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     )
 }
 
-// boss 1 HP 6
-pub fn gate_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
-    (
-        Name::new(GATES_NAME),
-        Boss,
-        Enemy::new_random(6)
-            .with_shooting_range(300.)
-            .with_attack(EnemyAttack {
-                cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
-                duration: Timer::from_seconds(4.0, TimerMode::Once),
-                shooting_pattern: vec![ShootingPattern::Flank {
-                    angle: 10.0_f32.to_radians(),
-                }],
-            })
-            .with_attack(EnemyAttack {
-                cooldown_timer: Timer::from_seconds(2.0, TimerMode::Repeating),
-                duration: Timer::from_seconds(4.0, TimerMode::Once),
-                shooting_pattern: vec![ShootingPattern::Spread {
-                    count: 5,
-                    arc: 45.0_f32.to_radians(),
-                }],
-            }),
-        AseAnimation {
-            animation: Animation::tag("closed")
-                .with_repeat(AnimationRepeat::Loop)
-                .with_direction(AnimationDirection::Forward)
-                .with_speed(1.0),
-            aseprite: anim_assets.enemies.gates.aseprite.clone(),
-        },
-        Sprite::default(),
-        ScreenWrap,
-        LockedAxes::new().lock_rotation(), // To be resolved with later kinematic solution
-        Transform::from_xyz(xy.x, xy.y, BOSS_Z_TRANSLATION),
-        RigidBody::Static,
-        GravityScale(0.0),
-        Dominance(5), // dominates all dynamic bodies with a dominance lower than `5`.
-        Collider::rectangle(50., 50.),
-    )
-}
+// // boss 1 HP 6
+// pub fn gate_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
+//     (
+//         Name::new(GATES_NAME),
+//         Boss,
+//         Enemy::new_random(6)
+//             .with_shooting_range(300.)
+//             .with_attack(EnemyAttack {
+//                 cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
+//                 duration: Timer::from_seconds(4.0, TimerMode::Once),
+//                 shooting_pattern: vec![ShootingPattern::Flank {
+//                     angle: 10.0_f32.to_radians(),
+//                 }],
+//             })
+//             .with_attack(EnemyAttack {
+//                 cooldown_timer: Timer::from_seconds(2.0, TimerMode::Repeating),
+//                 duration: Timer::from_seconds(4.0, TimerMode::Once),
+//                 shooting_pattern: vec![ShootingPattern::Spread {
+//                     count: 5,
+//                     arc: 45.0_f32.to_radians(),
+//                 }],
+//             }),
+//         AseAnimation {
+//             animation: Animation::tag("closed")
+//                 .with_repeat(AnimationRepeat::Loop)
+//                 .with_direction(AnimationDirection::Forward)
+//                 .with_speed(1.0),
+//             aseprite: anim_assets.enemies.gates.aseprite.clone(),
+//         },
+//         Sprite::default(),
+//         ScreenWrap,
+//         LockedAxes::new().lock_rotation(), // To be resolved with later kinematic solution
+//         Transform::from_xyz(xy.x, xy.y, BOSS_Z_TRANSLATION),
+//         RigidBody::Static,
+//         GravityScale(0.0),
+//         Dominance(5), // dominates all dynamic bodies with a dominance lower than `5`.
+//         Collider::rectangle(50., 50.),
+//     )
+// }
 
-// boss 2 HP 12
-pub fn eye_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
+// phase 1 HP 30
+pub fn phase1_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     let basic_enemy_collision_radius: f32 = 32.;
     (
-        Name::new(MAYA_NAME),
+        Name::new(PHASE_1_NAME),
         Boss,
-        Enemy::new_random(12)
+        BossPhase::for_phase(1),
+        Enemy::new_random(BossPhase::PHASE_1_HP as usize)
             .with_shooting_range(250.)
             .with_attack(EnemyAttack {
                 cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
@@ -211,7 +237,7 @@ pub fn eye_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
                 .with_repeat(AnimationRepeat::Loop)
                 .with_direction(AnimationDirection::Forward)
                 .with_speed(1.0),
-            aseprite: anim_assets.enemies.maya.aseprite.clone(),
+            aseprite: anim_assets.enemies.phase1.aseprite.clone(),
         },
         Sprite::default(),
         ScreenWrap,
@@ -224,13 +250,14 @@ pub fn eye_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     )
 }
 
-// boss 3 HP 24
-pub fn elephant_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
+// phase 2 HP +45
+pub fn phase2_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     let basic_enemy_collision_radius: f32 = 32.;
     (
-        Name::new(MURA_NAME),
+        Name::new(PHASE_2_NAME),
         Boss,
-        Enemy::new_random(18)
+        BossPhase::for_phase(2),
+        Enemy::new_random(BossPhase::PHASE_2_HP as usize) // change to 45
             .with_shooting_range(400.)
             .with_attack(EnemyAttack {
                 cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
@@ -273,7 +300,7 @@ pub fn elephant_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
                 .with_repeat(AnimationRepeat::Loop)
                 .with_direction(AnimationDirection::Forward)
                 .with_speed(1.0),
-            aseprite: anim_assets.enemies.mura.aseprite.clone(),
+            aseprite: anim_assets.enemies.phase2.aseprite.clone(),
         },
         Sprite::default(),
         ScreenWrap,
@@ -286,13 +313,14 @@ pub fn elephant_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     )
 }
 
-// boss 4 HP 48
-pub fn son_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
+// boss 3 HP 60
+pub fn phase3_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     let basic_enemy_collision_radius: f32 = 24.;
     (
-        Name::new(NARAK_NAME),
+        Name::new(PHASE_3_NAME),
         Boss,
-        Enemy::new_random(48)
+        BossPhase::for_phase(3),
+        Enemy::new_random(BossPhase::PHASE_3_HP as usize)
             .with_shooting_range(250.)
             .with_attack(EnemyAttack {
                 cooldown_timer: Timer::from_seconds(0.5, TimerMode::Repeating),
@@ -323,7 +351,7 @@ pub fn son_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
                 .with_repeat(AnimationRepeat::Loop)
                 .with_direction(AnimationDirection::Forward)
                 .with_speed(1.0),
-            aseprite: anim_assets.enemies.narak.aseprite.clone(),
+            aseprite: anim_assets.enemies.phase3.aseprite.clone(),
         },
         Sprite::default(),
         ScreenWrap,

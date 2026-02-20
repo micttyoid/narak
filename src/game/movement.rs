@@ -19,7 +19,7 @@ use crate::{
         Red,
         animation::*,
         level::{
-            bosses::{Boss, GATES_NAME, MAYA_NAME, MURA_NAME, NARAK_NAME, TUTORIAL_BOSS_NAME},
+            bosses::{Boss, PHASE_1_NAME, PHASE_2_NAME, PHASE_3_NAME, TUTORIAL_BOSS_NAME},
             enemies::*,
             projectiles::*,
         },
@@ -213,38 +213,28 @@ fn on_collision_enemy(
                                 .unwrap()
                                 .clone(),
                         )),
-                        // gates does not have its own sfx
-                        GATES_NAME => commands.spawn(sound_effect(
+                        PHASE_1_NAME => commands.spawn(sound_effect(
                             anim_assets
                                 .enemies
-                                .eye_enemy
+                                .phase1
                                 .damages
                                 .choose(&mut rand::rng())
                                 .unwrap()
                                 .clone(),
                         )),
-                        MAYA_NAME => commands.spawn(sound_effect(
+                        PHASE_2_NAME => commands.spawn(sound_effect(
                             anim_assets
                                 .enemies
-                                .maya
+                                .phase2
                                 .damages
                                 .choose(&mut rand::rng())
                                 .unwrap()
                                 .clone(),
                         )),
-                        MURA_NAME => commands.spawn(sound_effect(
+                        PHASE_3_NAME => commands.spawn(sound_effect(
                             anim_assets
                                 .enemies
-                                .mura
-                                .damages
-                                .choose(&mut rand::rng())
-                                .unwrap()
-                                .clone(),
-                        )),
-                        NARAK_NAME => commands.spawn(sound_effect(
-                            anim_assets
-                                .enemies
-                                .narak
+                                .phase3
                                 .damages
                                 .choose(&mut rand::rng())
                                 .unwrap()
