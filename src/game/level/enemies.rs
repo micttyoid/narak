@@ -2,7 +2,7 @@ use crate::{
     game::{
         animation::*,
         level::{
-            bosses::{GatesAssets, MayaAssets, MuraAssets, NarakAssets},
+            bosses::{Phase1Assets, Phase2Assets, Phase3Assets},
             enemy_behavior::{EnemyAttack, Move, ShootingPattern},
         },
         movement::ScreenWrap,
@@ -102,10 +102,9 @@ impl Enemy {
 pub struct EnemyAssets {
     pub seedlng_aseprite: Handle<Aseprite>,
     pub eye_enemy: EyeEnemyAssets,
-    pub gates: GatesAssets, // boss1
-    pub maya: MayaAssets,   // boss2
-    pub mura: MuraAssets,   // boss3
-    pub narak: NarakAssets, // boss4
+    pub phase1: Phase1Assets,
+    pub phase2: Phase2Assets,
+    pub phase3: Phase3Assets,
     pub bullet: Handle<Image>,
     #[dependency]
     pub throw: Handle<AudioSource>,
@@ -213,7 +212,7 @@ pub fn snake_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
                 .with_repeat(AnimationRepeat::Loop)
                 .with_direction(AnimationDirection::Forward)
                 .with_speed(1.0),
-            aseprite: anim_assets.enemies.mura.enemy.clone(),
+            aseprite: anim_assets.enemies.phase2.enemy.clone(),
         },
         Sprite::default(),
         ScreenWrap,
@@ -255,7 +254,7 @@ pub fn narak_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
                 .with_repeat(AnimationRepeat::Loop)
                 .with_direction(AnimationDirection::Forward)
                 .with_speed(1.0),
-            aseprite: anim_assets.enemies.narak.enemy.clone(),
+            aseprite: anim_assets.enemies.phase3.enemy.clone(),
         },
         Sprite::default(),
         ScreenWrap,

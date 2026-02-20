@@ -11,6 +11,7 @@ mod game;
 mod menus;
 mod screens;
 mod theme;
+mod ui;
 mod utils;
 
 use bevy::{
@@ -92,6 +93,7 @@ impl Plugin for AppPlugin {
             menus::plugin,
             screens::plugin,
             theme::plugin,
+            ui::plugin,
         ));
 
         // Order new `AppSystems` variants by adding them here:

@@ -60,10 +60,9 @@ pub fn spawn_tiled_map(
 ) {
     let asset_path = match current_level.get() {
         Level::Tutorial => "level0.tmx",
-        Level::Gates => "level1.tmx",
-        Level::Maya => "level2.tmx",
-        Level::Mura => "level3.tmx",
-        Level::Narak => "level4.tmx",
+        Level::Phase1 => "level1.tmx",
+        Level::Phase2 => "level2.tmx",
+        Level::Phase3 => "level4.tmx",
     };
     commands.spawn((
         TiledMapBundle {

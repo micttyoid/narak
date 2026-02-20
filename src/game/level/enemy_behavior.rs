@@ -9,7 +9,7 @@ use crate::{
     game::{
         animation::AnimationAssets,
         level::{
-            bosses::{Boss, GATES_NAME, MAYA_NAME, MURA_NAME, NARAK_NAME, TUTORIAL_BOSS_NAME},
+            bosses::{Boss, PHASE_1_NAME, PHASE_2_NAME, PHASE_3_NAME, TUTORIAL_BOSS_NAME},
             enemies::Enemy,
             projectiles::{Hostile, boss_basic_bullet, enemy_basic_bullet},
         },
@@ -127,32 +127,28 @@ fn enemy_shooting_system(
                                 TUTORIAL_BOSS_NAME => {
                                     cmd.spawn(sound_effect(anim_assets.enemies.throw.clone()))
                                 }
-                                // gates does not have its own sfx
-                                GATES_NAME => {
-                                    cmd.spawn(sound_effect(anim_assets.enemies.throw.clone()))
-                                }
-                                MAYA_NAME => cmd.spawn(sound_effect(
+                                PHASE_1_NAME => cmd.spawn(sound_effect(
                                     anim_assets
                                         .enemies
-                                        .maya
+                                        .phase1
                                         .attacks
                                         .choose(&mut rand::rng())
                                         .unwrap()
                                         .clone(),
                                 )),
-                                MURA_NAME => cmd.spawn(sound_effect(
+                                PHASE_2_NAME => cmd.spawn(sound_effect(
                                     anim_assets
                                         .enemies
-                                        .mura
+                                        .phase2
                                         .attacks
                                         .choose(&mut rand::rng())
                                         .unwrap()
                                         .clone(),
                                 )),
-                                NARAK_NAME => cmd.spawn(sound_effect(
+                                PHASE_3_NAME => cmd.spawn(sound_effect(
                                     anim_assets
                                         .enemies
-                                        .narak
+                                        .phase3
                                         .attacks
                                         .choose(&mut rand::rng())
                                         .unwrap()
