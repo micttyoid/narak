@@ -22,7 +22,11 @@ use crate::{
         Screen,
         gameplay::{LOADING_FADE_DURATION_SECS, LOADING_SPLASH_DURATION_SECS, LoadingFadeInOut},
     },
-    ui::{menus::Menu, theme::palette::LABEL_TEXT},
+    ui::{
+        dialogue::{DialogueQueue, spawn_dialogue_ui},
+        menus::Menu,
+        theme::palette::LABEL_TEXT,
+    },
     utils::cam::CameraShakeState,
 };
 
@@ -92,9 +96,9 @@ impl Level {
         use Level::*;
         match self {
             Tutorial => 3,
-            Phase1 => 6,
-            Phase2 => 9,
-            Phase3 => 12,
+            Phase1 => 3,
+            Phase2 => 4,
+            Phase3 => 5,
         }
     }
 }
@@ -165,6 +169,16 @@ pub fn spawn_level(
 
     match current_level.get() {
         Tutorial => {
+            commands.insert_resource(DialogueQueue {
+                lines: vec![
+                    "Bla bla bla".to_string(),
+                    "Bla bla?".to_string(),
+                    "Bla bla bla!".to_string(),
+                ],
+                current_index: 0,
+            });
+
+            spawn_dialogue_ui(&mut commands, &level_assets, "Bla bla bla.");
             let player_initial_transform = Vec2::new(-30.0, 0.0);
             commands.entity(lev_entity).insert((children![
                 player(

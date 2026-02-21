@@ -11,6 +11,8 @@ use crate::{
         level::projectiles::*,
         movement::{MovementController, ScreenWrap},
     },
+    screens::Screen,
+    ui::dialogue::DialogueQueue,
 };
 
 pub const PLAYER_Z_TRANSLATION: f32 = 100.;
@@ -25,7 +27,8 @@ pub(super) fn plugin(app: &mut App) {
         Update,
         record_player_directional_input
             .in_set(AppSystems::RecordInput)
-            .in_set(PausableSystems),
+            .in_set(PausableSystems)
+            .run_if(in_state(Screen::Gameplay).and(not(resource_exists::<DialogueQueue>))),
     );
 }
 
@@ -54,7 +57,7 @@ impl Default for Player {
 
 impl Player {
     pub fn increment_ammo(&mut self, n: usize) {
-        self.ammo += n;
+        self.ammo = (self.ammo + n).min(self.max_ammo);
     }
 
     pub fn with_stats(stats: usize) -> Self {

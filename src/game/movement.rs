@@ -25,6 +25,8 @@ use crate::{
         },
         player::*,
     },
+    screens::Screen,
+    ui::dialogue::DialogueQueue,
 };
 use avian2d::prelude::*;
 use bevy::{ecs::system::SystemParam, input::common_conditions::input_just_pressed, prelude::*};
@@ -36,7 +38,11 @@ pub(super) fn plugin(app: &mut App) {
         (
             apply_player_movement,
             apply_screen_wrap,
-            apply_player_throw.run_if(input_just_pressed(MouseButton::Left)),
+            apply_player_throw.run_if(
+                input_just_pressed(MouseButton::Left)
+                    .and(in_state(Screen::Gameplay))
+                    .and(not(resource_exists::<DialogueQueue>)),
+            ),
         )
             .in_set(AppSystems::Update)
             .in_set(PausableSystems),

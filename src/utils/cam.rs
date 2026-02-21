@@ -2,12 +2,6 @@ use bevy::image::{ImageLoaderSettings, ImageSampler};
 use bevy::math::ops::powf;
 use bevy::{camera::*, prelude::*};
 
-use crate::game::player::Player;
-
-pub const FOLLOW_CAMERA_TRESHOLD: f32 = 100.0;
-pub const FOLLOW_CAMERA_MAX_SPEED: f32 = 1000.0;
-pub const FOLLOW_CAMERA_BASE_SPEED: f32 = 4.5;
-
 // Shake Constants
 const TRAUMA_DECAY_PER_SECOND: f32 = 0.5;
 const TRAUMA_EXPONENT: f32 = 2.0;
