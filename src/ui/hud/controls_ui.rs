@@ -23,7 +23,7 @@ fn spawn_tutorial_ui(
     let mut layout = TextureAtlasLayout::new_empty(UVec2::new(192, 96));
 
     // 1. Attack: Space (Row 2, Col 1-4)
-    let attack_idx = layout.add_texture(URect::new(0, 16, 64, 32));
+    let attack_idx = layout.add_texture(URect::new(32, 64, 64, 96));
     // 2. Movement: WASD (Row 3, Col 1-4)
     let w_idx = layout.add_texture(URect::new(0, 32, 16, 48));
     let a_idx = layout.add_texture(URect::new(16, 32, 32, 48));
@@ -95,8 +95,8 @@ fn spawn_tutorial_ui(
                             },
                         ),
                         Node {
-                            width: Val::Px(64.0),
-                            height: Val::Px(16.0),
+                            width: Val::Px(32.0),
+                            height: Val::Px(32.0),
                             ..default()
                         },
                     ),

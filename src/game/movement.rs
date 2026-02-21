@@ -36,7 +36,7 @@ pub(super) fn plugin(app: &mut App) {
         (
             apply_player_movement,
             apply_screen_wrap,
-            apply_player_throw.run_if(input_just_pressed(KeyCode::Space)),
+            apply_player_throw.run_if(input_just_pressed(MouseButton::Left)),
         )
             .in_set(AppSystems::Update)
             .in_set(PausableSystems),
@@ -71,10 +71,30 @@ impl Default for MovementController {
 pub struct PassthroughHook<'w, 's> {
     projectile_query: Query<'w, 's, &'static Projectile>,
     passthrough_query: Query<'w, 's, &'static ProjectilePassthrough>,
+    recalled_query: Query<'w, 's, &'static Recalled>,
+    player_query: Query<'w, 's, &'static Player>,
 }
 
 impl CollisionHooks for PassthroughHook<'_, '_> {
     fn filter_pairs(&self, collider1: Entity, collider2: Entity, _commands: &mut Commands) -> bool {
+        // Recalled Projectile
+        let is_c1_recalled = self.recalled_query.contains(collider1);
+        let is_c2_recalled = self.recalled_query.contains(collider2);
+
+        if is_c1_recalled || is_c2_recalled {
+            let is_c1_player = self.player_query.contains(collider1);
+            let is_c2_player = self.player_query.contains(collider2);
+
+            // If one entity is Recalled, the OTHER must be the player to collide.
+            // Otherwise, ignore the collision entirely.
+            if is_c1_recalled && !is_c2_player {
+                return false;
+            }
+            if is_c2_recalled && !is_c1_player {
+                return false;
+            }
+        }
+
         let is_projectile1 = self.projectile_query.get(collider1).is_ok();
         let is_projectile2 = self.projectile_query.get(collider2).is_ok();
 
@@ -334,9 +354,10 @@ fn apply_player_movement(mut movement_query: Query<(&MovementController, &mut Li
 fn apply_player_throw(
     mut commands: Commands,
     anim_assets: Res<AnimationAssets>,
-    mut player: Single<(Entity, &Transform, &mut Player), With<Cool>>,
+    player: Single<(Entity, &Transform, &mut Player), With<Cool>>,
     global_transform: Query<&GlobalTransform>,
     camera_query: Single<(&Camera, &GlobalTransform)>,
+    projectiles: Query<Entity, (With<Projectile>, With<Friendly>, Without<Recalled>)>,
     window: Single<&Window>,
 ) {
     let (player_entity, player_transform, mut player) = player.into_inner();
@@ -376,42 +397,15 @@ fn apply_player_throw(
         ));
         player.decrement_ammo(1);
 
-        /*
-        commands.spawn(bounce_down_projectile::<Friendly>(
-            xy,
-            direction,
-            PLAYER_COLLIDER_RADIUS,
-            &anim_assets,
-        ));
-        commands.spawn(lifespan_projectile::<Friendly>(
-            xy,
-            direction,
-            PLAYER_COLLIDER_RADIUS,
-            &anim_assets,
-        ));
-        */
-
         // update cool
         commands.entity(player_entity).remove::<Cool>();
         commands.spawn(Cool::new(player.cool));
+    } else {
+        for entity in &projectiles {
+            commands.entity(entity).insert(Recalled);
+        }
     }
     // if ammo is out nah.
-}
-
-/// This should be where the optimization takes place if the frame dropss
-fn apply_projectile_movement(
-    mut movement_query: Query<(&Projectile, &mut LinearVelocity)>,
-    mut commands: Commands,
-    player: Single<(Entity, &Transform), With<Player>>,
-) {
-    let (player_entity, player_transform) = *player;
-
-    let forward_direction = (*player_transform).forward();
-    /*
-    commands.entity(player_entity).add_child((
-        Projectile,
-    ));
-    */
 }
 
 #[derive(Component, Reflect)]
@@ -419,7 +413,7 @@ fn apply_projectile_movement(
 pub struct ScreenWrap;
 
 fn apply_screen_wrap(mut wrap_query: Query<&mut Transform, With<ScreenWrap>>) {
-    let map_size = Vec2::new(640.0, 960.0);
+    let map_size = Vec2::new(640.0, 384.0);
     let half_size = map_size / 2.0;
     for mut transform in &mut wrap_query {
         let position = transform.translation.xy();

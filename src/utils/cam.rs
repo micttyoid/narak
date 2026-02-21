@@ -19,8 +19,6 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(Startup, spawn_camera);
     // Reset transform before game logic
     app.add_systems(PreUpdate, reset_transform);
-    // Normal follow camera logic
-    app.add_systems(Update, update_camera);
     // Apply shake right before rendering
     app.add_systems(PostUpdate, shake_camera.before(TransformSystems::Propagate));
 }
@@ -60,28 +58,6 @@ fn spawn_camera(mut commands: Commands, asset_server: Res<AssetServer>) {
             },
         )),
     ));
-}
-
-fn update_camera(
-    player_query: Single<&Transform, With<Player>>,
-    mut camera_query: Query<&mut Transform, (With<Camera2d>, Without<Player>)>,
-    time: Res<Time>,
-) {
-    let player_transform = player_query;
-    if let Ok(mut camera_transform) = camera_query.single_mut() {
-        let camera_pos = camera_transform.translation.truncate();
-        let player_pos = player_transform.translation.truncate();
-        let d = camera_pos.distance(player_pos);
-
-        // smoothing
-        let factor = (d / FOLLOW_CAMERA_TRESHOLD)
-            .clamp(1.0, FOLLOW_CAMERA_MAX_SPEED / FOLLOW_CAMERA_BASE_SPEED);
-        let effective_speed = FOLLOW_CAMERA_BASE_SPEED * factor;
-        let mut pos: Vec2 = camera_pos.lerp(player_pos, effective_speed * time.delta_secs());
-        //camera_transform.translation.x = pos.x; // life hax so it dont go out of map
-        pos.y = pos.y.clamp(-300.0, 300.0);
-        camera_transform.translation.y = pos.y;
-    }
 }
 
 #[derive(Component, Debug, Default)]
