@@ -13,7 +13,8 @@ use crate::{
     game::{
         animation::AnimationAssets,
         level::bosses::{
-            Boss, BossIntroPlaying, phase1_boss, phase2_boss, phase3_boss, tutorial_boss,
+            Boss, BossIntroPlaying, BossIntroTimer, phase1_boss, phase2_boss, phase3_boss,
+            tutorial_boss,
         },
         player::{PLAYER_Z_TRANSLATION, player},
     },
@@ -29,7 +30,10 @@ pub(super) fn plugin(app: &mut App) {
     app.load_resource::<LevelAssets>()
         .init_state::<Level>()
         .add_plugins((enemy_behavior::plugin, projectiles::plugin));
-    app.add_systems(Update, level_intro.run_if(in_state(Screen::Gameplay)));
+    app.add_systems(
+        Update,
+        (level_intro, remove_boss_intro_after_delay).run_if(in_state(Screen::Gameplay)),
+    );
 }
 
 /// GDD "pre defined multiple maps/levels(maybe 4-5?)"
@@ -199,7 +203,7 @@ pub fn spawn_level(
                     player_initial_transform,
                     current_level.player_stats()
                 ),
-                phase1_boss((-8.3, -150.5).into(), &anim_assets),
+                phase1_boss((-8.3, -120.5).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
                     DespawnOnExit(Menu::None), // To remove at ending such as to [`Menu::Credit`]
@@ -275,14 +279,28 @@ fn level_intro(
                 if let Ok((boss_entity, mut boss_anim)) = boss_q.single_mut() {
                     boss_anim
                         .animation
-                        .play("Scream", AnimationRepeat::Count(0));
+                        .play("Scream", AnimationRepeat::Count(4));
                     boss_anim.animation.then("Idle", AnimationRepeat::Loop);
                     if let Ok(mut shake) = camera_shake_q.single_mut() {
-                        shake.trauma = 1.0;
+                        shake.trauma = 2.0;
                     }
-                    cmd.entity(boss_entity).remove::<BossIntroPlaying>();
+                    cmd.entity(boss_entity)
+                        .insert(BossIntroTimer(Timer::from_seconds(3.0, TimerMode::Once)));
                 }
             }
+        }
+    }
+}
+
+fn remove_boss_intro_after_delay(
+    mut cmd: Commands,
+    time: Res<Time>,
+    mut q: Query<(Entity, &mut BossIntroTimer), With<BossIntroPlaying>>,
+) {
+    for (entity, mut timer) in &mut q {
+        if timer.0.tick(time.delta()).just_finished() {
+            cmd.entity(entity).remove::<BossIntroPlaying>();
+            cmd.entity(entity).remove::<BossIntroTimer>();
         }
     }
 }

@@ -9,10 +9,10 @@ pub const FOLLOW_CAMERA_MAX_SPEED: f32 = 1000.0;
 pub const FOLLOW_CAMERA_BASE_SPEED: f32 = 4.5;
 
 // Shake Constants
-const TRAUMA_DECAY_PER_SECOND: f32 = 1.0; // Decays fully in 1 second
+const TRAUMA_DECAY_PER_SECOND: f32 = 0.5;
 const TRAUMA_EXPONENT: f32 = 2.0;
-const MAX_ANGLE: f32 = 5.0_f32; // Converted to radians below
-const MAX_TRANSLATION: f32 = 15.0;
+const MAX_ANGLE: f32 = 10.0_f32;
+const MAX_TRANSLATION: f32 = 20.0;
 const NOISE_SPEED: f32 = 20.0;
 
 pub(super) fn plugin(app: &mut App) {
@@ -137,29 +137,47 @@ fn shake_camera(
     }
 }
 
+/// Tiny 1D Perlin noise implementation. The mathematical details are not important here.
 mod perlin_noise {
+    use super::*;
+
     pub fn generate(x: f32) -> f32 {
+        // Left coordinate of the unit-line that contains the input.
         let x_floor = x.floor() as usize;
+
+        // Input location in the unit-line.
         let xf0 = x - x_floor as f32;
         let xf1 = xf0 - 1.0;
+
+        // Wrap to range 0-255.
         let xi0 = x_floor & 0xFF;
         let xi1 = (x_floor + 1) & 0xFF;
+
+        // Apply the fade function to the location.
         let t = fade(xf0).clamp(0.0, 1.0);
+
+        // Generate hash values for each point of the unit-line.
         let h0 = PERMUTATION_TABLE[xi0];
         let h1 = PERMUTATION_TABLE[xi1];
+
+        // Linearly interpolate between dot products of each gradient with its distance to the input location.
         let a = dot_grad(h0, xf0);
         let b = dot_grad(h1, xf1);
-        a + t * (b - a)
+        a.interpolate_stable(&b, t)
     }
 
+    // A cubic curve that smoothly transitions from 0 to 1 as t goes from 0 to 1
     fn fade(t: f32) -> f32 {
         t * t * t * (t * (t * 6.0 - 15.0) + 10.0)
     }
 
     fn dot_grad(hash: u8, xf: f32) -> f32 {
+        // In 1D case, the gradient may be either 1 or -1.
+        // The distance vector is the input offset (relative to the smallest bound).
         if hash & 0x1 != 0 { xf } else { -xf }
     }
 
+    // Perlin noise permutation table. This is a random sequence of the numbers 0-255.
     const PERMUTATION_TABLE: [u8; 256] = [
         0x97, 0xA0, 0x89, 0x5B, 0x5A, 0x0F, 0x83, 0x0D, 0xC9, 0x5F, 0x60, 0x35, 0xC2, 0xE9, 0x07,
         0xE1, 0x8C, 0x24, 0x67, 0x1E, 0x45, 0x8E, 0x08, 0x63, 0x25, 0xF0, 0x15, 0x0A, 0x17, 0xBE,

@@ -188,16 +188,16 @@ pub fn phase1_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
         Enemy::new_random(BossPhase::PHASE_1_HP as usize)
             .with_shooting_range(250.)
             .with_attack(EnemyAttack {
-                cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
+                cooldown_timer: Timer::from_seconds(0.2, TimerMode::Repeating),
                 duration: Timer::from_seconds(3.0, TimerMode::Once),
-                shooting_pattern: vec![ShootingPattern::Ring { count: 9 }],
+                shooting_pattern: vec![ShootingPattern::Straight],
             })
             .with_attack(EnemyAttack {
                 cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
                 duration: Timer::from_seconds(3.0, TimerMode::Once),
                 shooting_pattern: vec![ShootingPattern::Random {
-                    count: 9,
-                    arc: 10.0_f32.to_radians(),
+                    count: 5,
+                    arc: 30.0_f32.to_radians(),
                 }],
             }),
         AseAnimation {
@@ -209,9 +209,8 @@ pub fn phase1_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
         },
         Sprite::default(),
         ScreenWrap,
-        LockedAxes::new().lock_rotation(), // To be resolved with later kinematic solution
         Transform::from_xyz(xy.x, xy.y, BOSS_Z_TRANSLATION),
-        RigidBody::Dynamic,
+        RigidBody::Static,
         GravityScale(0.0),
         Dominance(5), // dominates all dynamic bodies with a dominance lower than `5`.
         Collider::circle(basic_enemy_collision_radius),
@@ -269,11 +268,11 @@ pub fn phase2_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
                 .with_repeat(AnimationRepeat::Loop)
                 .with_direction(AnimationDirection::Forward)
                 .with_speed(1.0),
-            aseprite: anim_assets.enemies.phase2.aseprite.clone(),
+            aseprite: anim_assets.enemies.phase1.aseprite.clone(),
         },
         Sprite::default(),
         ScreenWrap,
-        LockedAxes::new().lock_rotation(), // To be resolved with later kinematic solution
+        LockedAxes::new().lock_rotation().lock_translation_y(),
         Transform::from_xyz(xy.x, xy.y, BOSS_Z_TRANSLATION),
         RigidBody::Dynamic,
         GravityScale(0.0),
@@ -348,3 +347,6 @@ pub fn phase3_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
 
 #[derive(Component)]
 pub struct BossIntroPlaying;
+
+#[derive(Component)]
+pub struct BossIntroTimer(pub Timer);

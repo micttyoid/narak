@@ -27,12 +27,8 @@ use crate::{
     },
 };
 use avian2d::prelude::*;
-use bevy::{
-    ecs::system::SystemParam, input::common_conditions::input_just_pressed, prelude::*,
-    window::PrimaryWindow,
-};
+use bevy::{ecs::system::SystemParam, input::common_conditions::input_just_pressed, prelude::*};
 use rand::seq::IndexedRandom;
-use std::ops::DerefMut;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
