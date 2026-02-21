@@ -18,6 +18,8 @@ fn spawn_loading_screen(mut commands: Commands) {
     commands.spawn((
         widget::ui_root("Loading Screen"),
         DespawnOnExit(Screen::Loading),
+        GlobalZIndex(5),
+        BackgroundColor(Color::BLACK),
         children![widget::label("Loading...")],
     ));
 }

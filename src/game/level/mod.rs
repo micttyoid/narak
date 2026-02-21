@@ -4,25 +4,32 @@ pub mod enemy_behavior;
 pub mod projectiles;
 
 use avian2d::prelude::{Physics, PhysicsTime};
-
 use bevy::{prelude::*, state::state::FreelyMutableState};
+use bevy_aseprite_ultra::prelude::{AnimationRepeat, AseAnimation};
 
 use crate::{
     asset_tracking::LoadResource,
     audio::{music, sound_effect},
     game::{
         animation::AnimationAssets,
-        level::bosses::{phase1_boss, phase2_boss, phase3_boss, tutorial_boss},
+        level::bosses::{
+            Boss, BossIntroPlaying, phase1_boss, phase2_boss, phase3_boss, tutorial_boss,
+        },
         player::{PLAYER_Z_TRANSLATION, player},
     },
-    screens::Screen,
+    screens::{
+        Screen,
+        gameplay::{LOADING_FADE_DURATION_SECS, LOADING_SPLASH_DURATION_SECS, LoadingFadeInOut},
+    },
     ui::{menus::Menu, theme::palette::LABEL_TEXT},
+    utils::cam::CameraShakeState,
 };
 
 pub(super) fn plugin(app: &mut App) {
     app.load_resource::<LevelAssets>()
         .init_state::<Level>()
-        .add_plugins((enemy_behavior::plugin, projectiles::plugin, bosses::plugin));
+        .add_plugins((enemy_behavior::plugin, projectiles::plugin));
+    app.add_systems(Update, level_intro.run_if(in_state(Screen::Gameplay)));
 }
 
 /// GDD "pre defined multiple maps/levels(maybe 4-5?)"
@@ -131,6 +138,9 @@ pub fn sfx_intro(
     }
 }
 
+#[derive(Component)]
+pub struct LevelEntryOverlay;
+
 /// A system that spawns the main level.
 pub fn spawn_level(
     current_level: Res<State<Level>>,
@@ -189,9 +199,7 @@ pub fn spawn_level(
                     player_initial_transform,
                     current_level.player_stats()
                 ),
-                // basic_enemy((66., 100.).into(), &anim_assets),
-                // basic_enemy((-131., 210.).into(), &anim_assets),
-                phase1_boss((38.3, 449.5).into(), &anim_assets),
+                phase1_boss((-8.3, -150.5).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
                     DespawnOnExit(Menu::None), // To remove at ending such as to [`Menu::Credit`]
@@ -208,8 +216,6 @@ pub fn spawn_level(
                     player_initial_transform,
                     current_level.player_stats()
                 ),
-                // eye_enemy((150., -20.).into(), &anim_assets),
-                // eye_enemy((-150., -20.).into(), &anim_assets),
                 phase2_boss((-36.5, 222.0).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
@@ -218,27 +224,6 @@ pub fn spawn_level(
                 ),
             ],));
         }
-        // Mura => {
-        //     let player_initial_transform = Vec2::new(-160.0, -340.0);
-        //     commands.entity(lev_entity).insert((children![
-        //         player(
-        //             100.0,
-        //             &anim_assets,
-        //             player_initial_transform,
-        //             current_level.player_stats()
-        //         ),
-        //         snake_enemy((-186.5, -53.0).into(), &anim_assets),
-        //         snake_enemy((104.5, -48.3).into(), &anim_assets),
-        //         eye_enemy((57.8, -281.8).into(), &anim_assets),
-        //         eye_enemy((-190.6, 120.6).into(), &anim_assets),
-        //         elephant_boss((20., 330.).into(), &anim_assets),
-        //         (
-        //             Name::new("Gameplay Music"),
-        //             DespawnOnExit(Menu::None),
-        //             music(level_assets.music.clone()),
-        //         ),
-        //     ],));
-        // }
         Phase3 => {
             let player_initial_transform = Vec2::new(-175.0, -420.0);
             commands.entity(lev_entity).insert((children![
@@ -248,11 +233,6 @@ pub fn spawn_level(
                     player_initial_transform,
                     current_level.player_stats()
                 ),
-                // narak_enemy((75.3, -333.8).into(), &anim_assets),
-                // snake_enemy((-33.6, 112.2).into(), &anim_assets),
-                // narak_enemy((-189.5, 282.0).into(), &anim_assets),
-                // eye_enemy((152.8, 261.0).into(), &anim_assets),
-                // snake_enemy((-186.5, -215.0).into(), &anim_assets),
                 phase3_boss((0., 400.).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
@@ -262,5 +242,47 @@ pub fn spawn_level(
             ],));
         }
     }
-    time.unpause();
+    commands.spawn((
+        Name::new("Level Transition Overlay"),
+        LevelEntryOverlay,
+        Node {
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            ..default()
+        },
+        BackgroundColor(Color::BLACK),
+        GlobalZIndex(10),
+        LoadingFadeInOut {
+            total_duration: LOADING_SPLASH_DURATION_SECS,
+            fade_duration: LOADING_FADE_DURATION_SECS,
+            t: LOADING_FADE_DURATION_SECS,
+        },
+    ));
+    time.pause();
+}
+
+fn level_intro(
+    mut cmd: Commands,
+    load_q: Query<(Entity, &LoadingFadeInOut), With<LevelEntryOverlay>>,
+    current_level: Res<State<Level>>,
+    mut boss_q: Query<(Entity, &mut AseAnimation), With<Boss>>,
+    mut camera_shake_q: Query<&mut CameraShakeState>,
+) {
+    for (entity, anim) in &load_q {
+        if anim.t >= anim.total_duration {
+            cmd.entity(entity).despawn();
+            if current_level.get() != &Level::Tutorial {
+                if let Ok((boss_entity, mut boss_anim)) = boss_q.single_mut() {
+                    boss_anim
+                        .animation
+                        .play("Scream", AnimationRepeat::Count(0));
+                    boss_anim.animation.then("Idle", AnimationRepeat::Loop);
+                    if let Ok(mut shake) = camera_shake_q.single_mut() {
+                        shake.trauma = 1.0;
+                    }
+                    cmd.entity(boss_entity).remove::<BossIntroPlaying>();
+                }
+            }
+        }
+    }
 }

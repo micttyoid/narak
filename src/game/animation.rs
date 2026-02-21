@@ -133,7 +133,7 @@ impl FromWorld for AnimationAssets {
                     ],
                 },
                 phase1: Phase1Assets {
-                    aseprite: assets.load("textures/chars/boss2.aseprite"),
+                    aseprite: assets.load("textures/chars/boss1.aseprite"),
                     attacks: vec![
                         assets.load("audio/sound_effects/maya/att1.ogg"),
                         assets.load("audio/sound_effects/maya/att2.ogg"),

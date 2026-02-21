@@ -19,7 +19,7 @@ struct HealthBarFill;
 
 fn spawn_healthbar(mut cmd: Commands) {
     cmd.spawn((
-        GlobalZIndex(5),
+        GlobalZIndex(1),
         Node {
             width: Val::Percent(50.0),
             height: Val::Percent(20.0),
@@ -31,6 +31,7 @@ fn spawn_healthbar(mut cmd: Commands) {
             ..default()
         },
         DespawnOnExit(Screen::Gameplay),
+        DespawnOnEnter(Screen::Loading),
         DespawnOnEnter(Menu::Win), // for when credits menu is opened at the end of gameplay
         children![(
             Node {
