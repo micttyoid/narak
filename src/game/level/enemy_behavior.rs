@@ -10,7 +10,7 @@ use crate::{
         animation::AnimationAssets,
         level::{
             bosses::{
-                Boss, BossIntroPlaying, PHASE_1_NAME, PHASE_2_NAME, PHASE_3_NAME,
+                Boss, BossIntroPlaying, BossPhase, PHASE_1_NAME, PHASE_2_NAME, PHASE_3_NAME,
                 TUTORIAL_BOSS_NAME,
             },
             enemies::Enemy,
@@ -63,10 +63,22 @@ fn update_moves(
 
 fn update_boss_moves(
     time: Res<Time>,
-    enemy_query: Query<(&mut LinearVelocity, &mut Enemy), (With<Boss>, Without<BossIntroPlaying>)>,
+    enemy_query: Query<
+        (&mut LinearVelocity, &mut Enemy, &BossPhase),
+        (With<Boss>, Without<BossIntroPlaying>),
+    >,
 ) {
     let d = time.delta();
-    for (mut velocity, mut enemy) in enemy_query {
+    for (mut velocity, mut enemy, phase) in enemy_query {
+        if phase.current_phase == 1 {
+            if !velocity.eq(&LinearVelocity::ZERO) {
+                *velocity = LinearVelocity::ZERO;
+            }
+            if !enemy.moves.is_empty() {
+                enemy.moves.clear();
+            }
+            continue;
+        }
         let mut is_pop = false;
         if let Some(m) = enemy.moves.last_mut() {
             match m {
@@ -76,7 +88,12 @@ fn update_boss_moves(
                         *velocity = LinearVelocity::ZERO;
                     } else {
                         timer.tick(d);
-                        *velocity = *v;
+                        if phase.current_phase == 2 {
+                            velocity.x = v.x;
+                            velocity.y = 0.0;
+                        } else {
+                            *velocity = *v;
+                        }
                     }
                 } //_ => {},
             }

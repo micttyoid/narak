@@ -206,7 +206,7 @@ pub fn boss_basic_bullet<HostilityComponent: Component + Default>(
 ) -> impl Bundle {
     let lifespan_projectile_collider_radius: f32 = 1.5;
     let projectile_life: f32 = 3.0; // seconds
-    let speed: f32 = 10.0;
+    let speed: f32 = 50.0;
 
     let new_xy = (lifespan_projectile_collider_radius + thrower_radius + 1.0e-3) * direction + xy;
     (
