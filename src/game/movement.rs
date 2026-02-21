@@ -19,7 +19,10 @@ use crate::{
         Red,
         animation::*,
         level::{
-            bosses::{Boss, PHASE_1_NAME, PHASE_2_NAME, PHASE_3_NAME, TUTORIAL_BOSS_NAME},
+            bosses::{
+                Boss, BossIntroPlaying, PHASE_1_NAME, PHASE_2_NAME, PHASE_3_NAME,
+                TUTORIAL_BOSS_NAME,
+            },
             enemies::*,
             projectiles::*,
         },
@@ -41,7 +44,8 @@ pub(super) fn plugin(app: &mut App) {
             apply_player_throw.run_if(
                 input_just_pressed(MouseButton::Left)
                     .and(in_state(Screen::Gameplay))
-                    .and(not(resource_exists::<DialogueQueue>)),
+                    .and(not(resource_exists::<DialogueQueue>))
+                    .and(not(any_with_component::<BossIntroPlaying>)),
             ),
         )
             .in_set(AppSystems::Update)

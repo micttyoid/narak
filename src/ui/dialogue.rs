@@ -2,14 +2,15 @@ use avian2d::prelude::{Physics, PhysicsTime};
 use bevy::prelude::*;
 
 use crate::{
-    game::level::{Level, LevelAssets},
+    game::level::{Level, LevelAssets, bosses::BossIntroPlaying},
     ui::theme::palette::{BACKGROUND_DARK, BUTTON_BORDER, BUTTON_TEXT},
 };
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         Update,
-        (advance_dialogue).run_if(resource_exists::<DialogueQueue>.and(in_state(Level::Tutorial))),
+        (advance_dialogue, update_typewriter)
+            .run_if(resource_exists::<DialogueQueue>.and(in_state(Level::Tutorial))),
     );
 }
 
@@ -17,6 +18,23 @@ pub(super) fn plugin(app: &mut App) {
 pub struct DialogueQueue {
     pub lines: Vec<String>,
     pub current_index: usize,
+    // --- Typewriter Fields ---
+    pub timer: Timer,
+    pub visible_chars: usize,
+    pub is_finished: bool,
+}
+
+impl DialogueQueue {
+    pub fn new(lines: Vec<String>) -> Self {
+        Self {
+            lines,
+            current_index: 0,
+            // 0.05 is roughly 20 characters per second
+            timer: Timer::from_seconds(0.05, TimerMode::Repeating),
+            visible_chars: 0,
+            is_finished: false,
+        }
+    }
 }
 
 #[derive(Component)]
@@ -63,6 +81,7 @@ fn advance_dialogue(
     touches: Res<Touches>,
     mut text_query: Query<&mut Text, With<DialogueUiText>>,
     ui_query: Query<Entity, With<DialogueUi>>,
+    intro_q: Query<Entity, With<BossIntroPlaying>>,
     mut time: ResMut<Time<Physics>>,
 ) {
     let explicit_continue = keys.just_pressed(KeyCode::Space)
@@ -70,21 +89,61 @@ fn advance_dialogue(
         || mouse_buttons.just_pressed(MouseButton::Left)
         || touches.any_just_pressed();
     if explicit_continue {
-        dialogue.current_index += 1;
-
-        if dialogue.current_index < dialogue.lines.len() {
-            // Update text to next line
+        let current_line = dialogue.lines[dialogue.current_index].clone();
+        if !dialogue.is_finished {
+            // 1. FAST FORWARD
+            dialogue.visible_chars = current_line.len();
+            dialogue.is_finished = true;
             if let Ok(mut text) = text_query.single_mut() {
-                text.0 = dialogue.lines[dialogue.current_index].clone();
+                text.0 = current_line.clone();
             }
         } else {
-            // End of conversation: Despawn UI and Resume Game
-            if let Ok(entity) = ui_query.single() {
-                cmd.entity(entity).despawn();
+            // 2. GO TO NEXT LINE
+            dialogue.current_index += 1;
+            if dialogue.current_index < dialogue.lines.len() {
+                dialogue.visible_chars = 0;
+                dialogue.is_finished = false;
+                // Clear text for next line start
+                if let Ok(mut text) = text_query.single_mut() {
+                    text.0 = "".to_string();
+                }
+            } else {
+                // End dialogue (Existing logic)
+                if let Ok(entity) = ui_query.single() {
+                    cmd.entity(entity).despawn();
+                    if let Ok(ett) = intro_q.single() {
+                        cmd.entity(ett).remove::<BossIntroPlaying>();
+                    }
+                }
+                cmd.remove_resource::<DialogueQueue>();
+                time.unpause();
             }
-            cmd.remove_resource::<DialogueQueue>();
+        }
+    }
+}
 
-            time.unpause();
+fn update_typewriter(
+    time: Res<Time>,
+    mut dialogue: ResMut<DialogueQueue>,
+    mut text_query: Query<&mut Text, With<DialogueUiText>>,
+) {
+    if dialogue.is_finished {
+        return;
+    }
+
+    let current_line = dialogue.lines[dialogue.current_index].clone();
+
+    // Tick the timer
+    if dialogue.timer.tick(time.delta()).just_finished() {
+        if dialogue.visible_chars < current_line.len() {
+            dialogue.visible_chars += 1;
+
+            // Update the actual UI text
+            if let Ok(mut text) = text_query.single_mut() {
+                text.0 = current_line.chars().take(dialogue.visible_chars).collect();
+            }
+        } else {
+            dialogue.is_finished = true;
         }
     }
 }

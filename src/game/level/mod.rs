@@ -169,14 +169,12 @@ pub fn spawn_level(
 
     match current_level.get() {
         Tutorial => {
-            commands.insert_resource(DialogueQueue {
-                lines: vec![
-                    "Bla bla bla".to_string(),
-                    "Bla bla?".to_string(),
-                    "Bla bla bla!".to_string(),
-                ],
-                current_index: 0,
-            });
+            let lines = vec![
+                "Bla bla bla".to_string(),
+                "Bla bla?".to_string(),
+                "Bla bla bla!".to_string(),
+            ];
+            commands.insert_resource(DialogueQueue::new(lines));
 
             spawn_dialogue_ui(&mut commands, &level_assets, "Bla bla bla.");
             let player_initial_transform = Vec2::new(-30.0, 0.0);
