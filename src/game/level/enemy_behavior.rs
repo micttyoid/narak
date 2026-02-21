@@ -9,7 +9,10 @@ use crate::{
     game::{
         animation::AnimationAssets,
         level::{
-            bosses::{Boss, PHASE_1_NAME, PHASE_2_NAME, PHASE_3_NAME, TUTORIAL_BOSS_NAME},
+            bosses::{
+                Boss, BossIntroPlaying, BossPhase, PHASE_1_NAME, PHASE_2_NAME, PHASE_3_NAME,
+                TUTORIAL_BOSS_NAME,
+            },
             enemies::Enemy,
             projectiles::{Hostile, boss_basic_bullet, enemy_basic_bullet},
         },
@@ -21,7 +24,14 @@ use crate::{
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         Update,
-        (check_enemy_death, update_moves, enemy_shooting_system).in_set(PausableSystems),
+        (
+            check_enemy_death,
+            update_moves,
+            update_boss_moves,
+            enemy_shooting_system,
+            boss_teleport_system,
+        )
+            .in_set(PausableSystems),
     );
 }
 
@@ -41,6 +51,49 @@ fn update_moves(
                     } else {
                         timer.tick(d);
                         *velocity = *v;
+                    }
+                } //_ => {},
+            }
+        } else {
+            enemy.random_linear_moves(); // refill
+        }
+        enemy.moves.pop_if(|_| is_pop);
+    }
+}
+
+fn update_boss_moves(
+    time: Res<Time>,
+    enemy_query: Query<
+        (&mut LinearVelocity, &mut Enemy, &BossPhase),
+        (With<Boss>, Without<BossIntroPlaying>),
+    >,
+) {
+    let d = time.delta();
+    for (mut velocity, mut enemy, phase) in enemy_query {
+        if phase.current_phase == 1 {
+            if !velocity.eq(&LinearVelocity::ZERO) {
+                *velocity = LinearVelocity::ZERO;
+            }
+            if !enemy.moves.is_empty() {
+                enemy.moves.clear();
+            }
+            continue;
+        }
+        let mut is_pop = false;
+        if let Some(m) = enemy.moves.last_mut() {
+            match m {
+                Move::UnitVelocity(v, timer) => {
+                    if timer.is_finished() {
+                        is_pop = true;
+                        *velocity = LinearVelocity::ZERO;
+                    } else {
+                        timer.tick(d);
+                        if phase.current_phase == 2 {
+                            velocity.x = v.x;
+                            velocity.y = 0.0;
+                        } else {
+                            *velocity = *v;
+                        }
                     }
                 } //_ => {},
             }
@@ -80,7 +133,10 @@ fn enemy_shooting_system(
     mut cmd: Commands,
     time: Res<Time>,
     player_query: Query<&Transform, With<Player>>,
-    mut enemy_query: Query<(&Transform, &mut Enemy, Has<Boss>, Option<&Name>), Without<Player>>,
+    mut enemy_query: Query<
+        (&Transform, &mut Enemy, Has<Boss>, Option<&Name>),
+        (Without<Player>, Without<BossIntroPlaying>),
+    >,
     anim_assets: If<Res<AnimationAssets>>,
 ) {
     let Ok(player_transform) = player_query.single() else {
@@ -289,4 +345,25 @@ pub enum Move {
     // UnitWeirdMotion,
     // UnitDance,
     // UnitPathfinding,
+}
+
+#[derive(Component)]
+pub struct TeleportAbility {
+    pub positions: Vec<Vec2>,
+    pub timer: Timer,
+    pub current_index: usize,
+}
+
+fn boss_teleport_system(time: Res<Time>, mut query: Query<(&mut Transform, &mut TeleportAbility)>) {
+    for (mut transform, mut teleport) in query.iter_mut() {
+        teleport.timer.tick(time.delta());
+        if teleport.timer.just_finished() {
+            if !teleport.positions.is_empty() {
+                let next_pos = &teleport.positions[teleport.current_index];
+                transform.translation.x = next_pos.x;
+                transform.translation.y = next_pos.y;
+                teleport.current_index = (teleport.current_index + 1) % teleport.positions.len();
+            }
+        }
+    }
 }

@@ -1,10 +1,9 @@
 use crate::{
-    PausableSystems,
     game::{
         animation::AnimationAssets,
         level::{
             enemies::Enemy,
-            enemy_behavior::{EnemyAttack, Move, ShootingPattern},
+            enemy_behavior::{EnemyAttack, ShootingPattern, TeleportAbility},
         },
         movement::ScreenWrap,
         player::PLAYER_Z_TRANSLATION,
@@ -20,13 +19,6 @@ pub const TUTORIAL_BOSS_NAME: &str = "Tutorial Boss";
 pub const PHASE_1_NAME: &str = "Phase 1 Boss";
 pub const PHASE_2_NAME: &str = "Phase 2 Boss";
 pub const PHASE_3_NAME: &str = "Phase 3 Boss";
-
-pub(super) fn plugin(app: &mut App) {
-    app.add_systems(
-        Update,
-        (update_boss_moves, boss_teleport_system).in_set(PausableSystems),
-    );
-}
 
 /// "1 boss per level, if boss gets life zero, auto move on?" "yes"
 /// Do not despawn at the life zero like the other enemies
@@ -67,32 +59,6 @@ impl BossPhase {
             3 => 0,
             _ => panic!("Invalid boss phase: {}", self.current_phase),
         }
-    }
-}
-
-fn update_boss_moves(
-    time: Res<Time>,
-    enemy_query: Query<(&mut LinearVelocity, &mut Enemy), With<Boss>>,
-) {
-    let d = time.delta();
-    for (mut velocity, mut enemy) in enemy_query {
-        let mut is_pop = false;
-        if let Some(m) = enemy.moves.last_mut() {
-            match m {
-                Move::UnitVelocity(v, timer) => {
-                    if timer.is_finished() {
-                        is_pop = true;
-                        *velocity = LinearVelocity::ZERO;
-                    } else {
-                        timer.tick(d);
-                        *velocity = *v;
-                    }
-                } //_ => {},
-            }
-        } else {
-            enemy.random_linear_moves(); // refill
-        }
-        enemy.moves.pop_if(|_| is_pop);
     }
 }
 
@@ -142,6 +108,7 @@ pub fn tutorial_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     (
         Name::new(TUTORIAL_BOSS_NAME),
         Boss,
+        BossIntroPlaying,
         Enemy::new_random(3)
             .with_shooting_range(300.)
             .with_attack(EnemyAttack {
@@ -217,23 +184,24 @@ pub fn phase1_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
         Name::new(PHASE_1_NAME),
         Boss,
         BossPhase::for_phase(1),
+        BossIntroPlaying,
         Enemy::new_random(BossPhase::PHASE_1_HP as usize)
             .with_shooting_range(250.)
             .with_attack(EnemyAttack {
-                cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
+                cooldown_timer: Timer::from_seconds(0.2, TimerMode::Repeating),
                 duration: Timer::from_seconds(3.0, TimerMode::Once),
-                shooting_pattern: vec![ShootingPattern::Ring { count: 9 }],
+                shooting_pattern: vec![ShootingPattern::Straight],
             })
             .with_attack(EnemyAttack {
                 cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
                 duration: Timer::from_seconds(3.0, TimerMode::Once),
                 shooting_pattern: vec![ShootingPattern::Random {
-                    count: 9,
-                    arc: 10.0_f32.to_radians(),
+                    count: 5,
+                    arc: 30.0_f32.to_radians(),
                 }],
             }),
         AseAnimation {
-            animation: Animation::tag("idle")
+            animation: Animation::tag("Idle")
                 .with_repeat(AnimationRepeat::Loop)
                 .with_direction(AnimationDirection::Forward)
                 .with_speed(1.0),
@@ -241,9 +209,8 @@ pub fn phase1_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
         },
         Sprite::default(),
         ScreenWrap,
-        LockedAxes::new().lock_rotation(), // To be resolved with later kinematic solution
         Transform::from_xyz(xy.x, xy.y, BOSS_Z_TRANSLATION),
-        RigidBody::Dynamic,
+        RigidBody::Static,
         GravityScale(0.0),
         Dominance(5), // dominates all dynamic bodies with a dominance lower than `5`.
         Collider::circle(basic_enemy_collision_radius),
@@ -257,6 +224,7 @@ pub fn phase2_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
         Name::new(PHASE_2_NAME),
         Boss,
         BossPhase::for_phase(2),
+        BossIntroPlaying,
         Enemy::new_random(BossPhase::PHASE_2_HP as usize) // change to 45
             .with_shooting_range(400.)
             .with_attack(EnemyAttack {
@@ -300,11 +268,11 @@ pub fn phase2_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
                 .with_repeat(AnimationRepeat::Loop)
                 .with_direction(AnimationDirection::Forward)
                 .with_speed(1.0),
-            aseprite: anim_assets.enemies.phase2.aseprite.clone(),
+            aseprite: anim_assets.enemies.phase1.aseprite.clone(),
         },
         Sprite::default(),
         ScreenWrap,
-        LockedAxes::new().lock_rotation(), // To be resolved with later kinematic solution
+        LockedAxes::new().lock_rotation().lock_translation_y(),
         Transform::from_xyz(xy.x, xy.y, BOSS_Z_TRANSLATION),
         RigidBody::Dynamic,
         GravityScale(0.0),
@@ -320,6 +288,7 @@ pub fn phase3_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
         Name::new(PHASE_3_NAME),
         Boss,
         BossPhase::for_phase(3),
+        BossIntroPlaying,
         Enemy::new_random(BossPhase::PHASE_3_HP as usize)
             .with_shooting_range(250.)
             .with_attack(EnemyAttack {
@@ -377,22 +346,7 @@ pub fn phase3_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
 }
 
 #[derive(Component)]
-pub struct TeleportAbility {
-    pub positions: Vec<Vec2>,
-    pub timer: Timer,
-    pub current_index: usize,
-}
+pub struct BossIntroPlaying;
 
-fn boss_teleport_system(time: Res<Time>, mut query: Query<(&mut Transform, &mut TeleportAbility)>) {
-    for (mut transform, mut teleport) in query.iter_mut() {
-        teleport.timer.tick(time.delta());
-        if teleport.timer.just_finished() {
-            if !teleport.positions.is_empty() {
-                let next_pos = &teleport.positions[teleport.current_index];
-                transform.translation.x = next_pos.x;
-                transform.translation.y = next_pos.y;
-                teleport.current_index = (teleport.current_index + 1) % teleport.positions.len();
-            }
-        }
-    }
-}
+#[derive(Component)]
+pub struct BossIntroTimer(pub Timer);
