@@ -320,7 +320,7 @@ pub fn phase3_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
                 .with_repeat(AnimationRepeat::Loop)
                 .with_direction(AnimationDirection::Forward)
                 .with_speed(1.0),
-            aseprite: anim_assets.enemies.phase3.aseprite.clone(),
+            aseprite: anim_assets.enemies.phase1.aseprite.clone(),
         },
         Sprite::default(),
         ScreenWrap,
