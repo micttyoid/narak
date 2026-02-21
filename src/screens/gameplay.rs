@@ -5,7 +5,7 @@ use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 use bevy_aseprite_ultra::prelude::{AseAnimation, ManualTick};
 
 use crate::{
-    Pause,
+    AppSystems, Pause,
     audio::sound_effect,
     game::{
         level::{Level, bosses::Boss, enemies::Enemy, sfx_intro, spawn_level},
@@ -42,6 +42,11 @@ pub(super) fn plugin(app: &mut App) {
                     .and(not(in_state(Menu::None)))
                     .and(input_just_pressed(KeyCode::KeyP)),
             ),
+            despawn_finished_transitions.run_if(
+                in_state(Screen::Gameplay)
+                    .or(in_state(Screen::Loading))
+                    .or(in_state(Menu::Win)),
+            ),
         ),
     );
     app.add_systems(OnExit(Screen::Gameplay), (close_menu, unpause, cleanup));
@@ -49,33 +54,39 @@ pub(super) fn plugin(app: &mut App) {
         OnEnter(Menu::None),
         unpause.run_if(in_state(Screen::Gameplay)),
     );
+    app.add_systems(
+        Update,
+        (
+            tick_fade_in_out.in_set(AppSystems::TickTimers),
+            apply_fade_in_out.in_set(AppSystems::Update),
+        )
+            .run_if(in_state(Screen::Gameplay)),
+    );
+
+    app.add_observer(on_boss_defeated)
+        .add_observer(transition_level);
 }
+
+#[derive(Component)]
+pub struct LevelTransitionOverlay;
 
 /// Top game loop. If boss is low on life, the level is set to the
 /// next until the last level.
 /// "1 boss per level, if boss gets life zero, auto move on?" "yes"
 fn check_boss_and_player(
-    mut next_screen: ResMut<NextState<Screen>>,
-    mut next_level: ResMut<NextState<Level>>,
     mut next_menu: ResMut<NextState<Menu>>,
-    mut next_pause: ResMut<NextState<Pause>>,
-    mut time: ResMut<Time<Physics>>,
-    current_level: Res<State<Level>>,
     query: Query<(Entity, &Enemy), With<Boss>>,
     player: Single<&Player>,
+    transition_query: Query<(), With<LevelTransitionOverlay>>,
+    mut cmd: Commands,
 ) {
     match query.single() {
-        Ok((_, boss_enemy)) => {
-            if boss_enemy.life == 0 {
-                time.pause();
-                next_pause.set(Pause(true));
-                let lev = current_level.get();
-                if lev.is_last() {
-                    next_menu.set(Menu::Win);
-                } else {
-                    next_level.set(lev.next());
-                    next_screen.set(Screen::Loading);
-                }
+        Ok((boss_entity, boss_enemy)) => {
+            if boss_enemy.life == 0 && transition_query.is_empty() {
+                // start screen transition splash here
+                cmd.trigger(BossDefeated {
+                    entity: boss_entity,
+                });
             }
             if (*player).life == 0 {
                 // TODO: lost
@@ -150,4 +161,106 @@ fn open_pause_menu(mut next_menu: ResMut<NextState<Menu>>) {
 
 fn close_menu(mut next_menu: ResMut<NextState<Menu>>) {
     next_menu.set(Menu::None);
+}
+
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+pub struct LoadingFadeInOut {
+    /// Total duration in seconds.
+    pub total_duration: f32,
+    /// Fade duration in seconds.
+    pub fade_duration: f32,
+    /// Current progress in seconds, between 0 and [`Self::total_duration`].
+    pub t: f32,
+}
+
+pub const LOADING_SPLASH_DURATION_SECS: f32 = 1.2;
+pub const LOADING_FADE_DURATION_SECS: f32 = 0.6;
+
+impl LoadingFadeInOut {
+    fn alpha(&self) -> f32 {
+        // Normalize by duration.
+        let t = (self.t / self.total_duration).clamp(0.0, 1.0);
+        let fade = self.fade_duration / self.total_duration;
+
+        // Regular trapezoid-shaped graph, flat at the top with alpha = 1.0.
+        ((1.0 - (2.0 * t - 1.0).abs()) / fade).min(1.0)
+    }
+}
+
+#[derive(Event)]
+pub struct StartLoadNext;
+
+pub fn tick_fade_in_out(
+    time: Res<Time>,
+    mut animation_query: Query<(&mut LoadingFadeInOut, Has<LevelTransitionOverlay>)>,
+    mut cmd: Commands,
+) {
+    for (mut anim, is_exit) in &mut animation_query {
+        let previously_passed = anim.t >= (anim.total_duration / 2.0);
+        anim.t += time.delta_secs();
+        let currently_passed = anim.t >= (anim.total_duration / 2.0);
+        if is_exit && !previously_passed && currently_passed {
+            cmd.trigger(StartLoadNext);
+        }
+    }
+}
+
+pub fn apply_fade_in_out(mut animation_query: Query<(&LoadingFadeInOut, &mut BackgroundColor)>) {
+    for (anim, mut bg) in &mut animation_query {
+        bg.0.set_alpha(anim.alpha());
+    }
+}
+
+#[derive(EntityEvent, Copy, Clone)]
+pub struct BossDefeated {
+    #[event_target]
+    pub entity: Entity,
+}
+
+fn on_boss_defeated(_: On<BossDefeated>, mut cmd: Commands, mut time: ResMut<Time<Physics>>) {
+    time.pause();
+    cmd.spawn((
+        Name::new("Level Transition Overlay"),
+        LevelTransitionOverlay,
+        Node {
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            ..default()
+        },
+        BackgroundColor(Color::BLACK.with_alpha(0.0)),
+        GlobalZIndex(5),
+        LoadingFadeInOut {
+            total_duration: LOADING_SPLASH_DURATION_SECS,
+            fade_duration: LOADING_FADE_DURATION_SECS,
+            t: 0.0,
+        },
+    ));
+}
+
+fn transition_level(
+    _: On<StartLoadNext>,
+    current_level: Res<State<Level>>,
+    mut next_level: ResMut<NextState<Level>>,
+    mut next_screen: ResMut<NextState<Screen>>,
+    mut next_menu: ResMut<NextState<Menu>>,
+) {
+    let lev = current_level.get();
+    if !lev.is_last() {
+        next_level.set(lev.next());
+        next_screen.set(Screen::Loading);
+    } else {
+        next_menu.set(Menu::Win);
+    }
+}
+
+fn despawn_finished_transitions(
+    mut cmd: Commands,
+    query: Query<(Entity, &LoadingFadeInOut), With<LevelTransitionOverlay>>,
+) {
+    for (entity, anim) in &query {
+        if anim.t >= anim.total_duration {
+            cmd.entity(entity).despawn();
+        }
+    }
 }
