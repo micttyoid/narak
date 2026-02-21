@@ -8,7 +8,7 @@ use crate::{
     asset_tracking::LoadResource,
     game::{
         animation::{AnimationAssets, PlayerAnimation, PlayerAnimationState},
-        level::projectiles::*,
+        level::{bosses::BossIntroPlaying, projectiles::*},
         movement::{MovementController, ScreenWrap},
     },
     screens::Screen,
@@ -28,7 +28,11 @@ pub(super) fn plugin(app: &mut App) {
         record_player_directional_input
             .in_set(AppSystems::RecordInput)
             .in_set(PausableSystems)
-            .run_if(in_state(Screen::Gameplay).and(not(resource_exists::<DialogueQueue>))),
+            .run_if(
+                in_state(Screen::Gameplay)
+                    .and(not(resource_exists::<DialogueQueue>))
+                    .and(not(any_with_component::<BossIntroPlaying>)),
+            ),
     );
 }
 

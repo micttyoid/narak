@@ -358,16 +358,20 @@ pub fn lifespan_projectile<HostilityComponent: Component + Default>(
 fn update_projectiles(
     mut commands: Commands,
     time: Res<Time>,
-    projectile_query: Query<(Entity, &mut Projectile, &mut LinearVelocity)>,
+    projectile_query: Query<(Entity, &mut Projectile, &mut LinearVelocity, Has<Friendly>)>,
 ) {
-    let despawned = Vec::<Entity>::new();
-    for (proj_entity, mut projectile, mut velocity) in projectile_query {
+    let mut despawned = Vec::<Entity>::new();
+    for (proj_entity, mut projectile, mut velocity, is_friendly) in projectile_query {
         for due in projectile.dues.iter_mut() {
             use Due::*;
             match due {
                 Lifespan(timer) => {
                     if timer.is_finished() {
-                        velocity.0 = Vec2::ZERO;
+                        if is_friendly {
+                            velocity.0 = Vec2::ZERO;
+                        } else {
+                            despawned.push(proj_entity);
+                        }
                         break;
                     } else {
                         timer.tick(time.delta());
