@@ -8,7 +8,11 @@ use crate::{
     screens::Screen,
     ui::{
         menus::Menu,
-        theme::{interaction::InteractionAssets, prelude::*},
+        theme::{
+            interaction::InteractionAssets,
+            palette::NORMAL_TEXT_COLOR,
+            prelude::*,
+        },
     },
 };
 
@@ -46,7 +50,7 @@ fn spawn_settings_menu(mut commands: Commands, menu_asset: Res<InteractionAssets
         GlobalZIndex(3),
         DespawnOnExit(Menu::Settings),
         children![
-            widget::header("Settings"),
+            widget::header_with_color("Settings", NORMAL_TEXT_COLOR),
             settings_grid(menu_asset.settings_font.clone()),
             widget::button("Back", go_back_on_click),
         ],
@@ -65,7 +69,7 @@ fn settings_grid(font: Handle<Font>) -> impl Bundle {
         },
         children![
             (
-                widget::label("Master Volume"),
+                widget::label_with_size_and_color("Master Volume", 24.0, NORMAL_TEXT_COLOR),
                 Node {
                     justify_self: JustifySelf::End,
                     ..default()
@@ -92,7 +96,10 @@ fn global_volume_widget(font: Handle<Font>) -> impl Bundle {
                     justify_content: JustifyContent::Center,
                     ..default()
                 },
-                children![(widget::label(""), GlobalVolumeLabel)],
+                children![(
+                    widget::label_with_size_and_color("", 24.0, NORMAL_TEXT_COLOR),
+                    GlobalVolumeLabel
+                )],
             ),
             widget::button_small_custom_font("+", raise_global_volume, font),
         ],
