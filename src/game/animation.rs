@@ -121,7 +121,6 @@ impl FromWorld for AnimationAssets {
                 chakram: assets.load("textures/props/chakram.aseprite"),
             },
             enemies: EnemyAssets {
-                seedlng_aseprite: assets.load("textures/chars/seedling.aseprite"),
                 throw: assets.load("audio/sound_effects/enemies/throw.ogg"),
                 eye_enemy: EyeEnemyAssets {
                     aseprite: assets.load("textures/chars/eye-enemy.aseprite"),
@@ -149,7 +148,6 @@ impl FromWorld for AnimationAssets {
                     idle: assets.load("audio/sound_effects/maya/idle.ogg"),
                 },
                 phase2: Phase2Assets {
-                    aseprite: assets.load("textures/chars/boss3.aseprite"),
                     attacks: vec![
                         assets.load("audio/sound_effects/mura/att1.ogg"),
                         assets.load("audio/sound_effects/mura/att2.ogg"),
@@ -165,10 +163,9 @@ impl FromWorld for AnimationAssets {
                         assets.load("audio/sound_effects/mura/dmg2.ogg"),
                         assets.load("audio/sound_effects/mura/dmg3.ogg"),
                     ],
-                    enemy: assets.load("textures/chars/snake.aseprite"),
                 },
                 phase3: Phase3Assets {
-                    aseprite: assets.load("textures/chars/boss4.aseprite"),
+                    aseprite: assets.load("textures/chars/boss3.aseprite"),
                     attacks: vec![
                         assets.load("audio/sound_effects/narak/att1.ogg"),
                         assets.load("audio/sound_effects/narak/att2.ogg"),
@@ -179,7 +176,6 @@ impl FromWorld for AnimationAssets {
                         assets.load("audio/sound_effects/narak/dmg3.ogg"),
                     ],
                     death: assets.load("audio/sound_effects/narak/death.ogg"),
-                    enemy: assets.load("textures/chars/ashiok.aseprite"),
                 },
                 bullet: assets.load("textures/props/bullet.png"),
             },
