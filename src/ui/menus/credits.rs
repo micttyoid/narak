@@ -8,7 +8,11 @@ use crate::{
     screens::Screen,
     ui::{
         menus::Menu,
-        theme::{interaction::InteractionAssets, prelude::*},
+        theme::{
+            interaction::InteractionAssets,
+            palette::{CREDITS_BACKDROP, NORMAL_TEXT_COLOR},
+            prelude::*,
+        },
     },
 };
 
@@ -44,9 +48,20 @@ fn spawn_credits_menu(mut commands: Commands, bg_assets: Res<InteractionAssets>)
         GlobalZIndex(3),
         DespawnOnExit(Menu::Credits),
         children![
-            widget::header("Created by"),
+            // Semi-transparent backdrop so text is readable on the cover image
+            (
+                Name::new("Credits Backdrop"),
+                Node {
+                    position_type: PositionType::Absolute,
+                    width: percent(100),
+                    height: percent(100),
+                    ..default()
+                },
+                BackgroundColor(CREDITS_BACKDROP),
+            ),
+            widget::header_with_color("Created by", NORMAL_TEXT_COLOR),
             created_by(),
-            widget::header("Assets"),
+            widget::header_with_color("Assets", NORMAL_TEXT_COLOR),
             assets(),
             widget::button("Back", go_back_on_click),
         ],
@@ -98,7 +113,7 @@ fn grid(content: Vec<[&'static str; 2]>, font_size: f32) -> impl Bundle {
         Children::spawn(SpawnIter(content.into_iter().flatten().enumerate().map(
             move |(i, text)| {
                 (
-                    widget::label_with_size(text, font_size.clone()),
+                    widget::label_with_size_and_color(text, font_size.clone(), NORMAL_TEXT_COLOR),
                     Node {
                         justify_self: if i.is_multiple_of(2) {
                             JustifySelf::End

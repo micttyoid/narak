@@ -10,7 +10,7 @@ use bevy::{
 use crate::ui::theme::{
     palette::{
         BUTTON_BACKGROUND, BUTTON_BORDER, BUTTON_HOVERED_BACKGROUND, BUTTON_PRESSED_BACKGROUND,
-        BUTTON_TEXT, HEADER_TEXT, LABEL_TEXT,
+        BUTTON_TEXT, HEADER_TEXT, LABEL_TEXT, NORMAL_TEXT_COLOR,
     },
     prelude::InteractionPalette,
 };
@@ -52,11 +52,16 @@ pub fn menu_root(name: impl Into<Cow<'static, str>>) -> impl Bundle {
 
 /// A simple header label. Bigger than [`label`].
 pub fn header(text: impl Into<String>) -> impl Bundle {
+    header_with_color(text, HEADER_TEXT)
+}
+
+/// Header with custom text color.
+pub fn header_with_color(text: impl Into<String>, color: Color) -> impl Bundle {
     (
         Name::new("Header"),
         Text(text.into()),
         TextFont::from_font_size(40.0),
-        TextColor(HEADER_TEXT),
+        TextColor(color),
     )
 }
 
@@ -72,11 +77,16 @@ pub fn label(text: impl Into<String>) -> impl Bundle {
 
 /// A simple text label with custom size.
 pub fn label_with_size(text: impl Into<String>, size: f32) -> impl Bundle {
+    label_with_size_and_color(text, size, LABEL_TEXT)
+}
+
+/// Label with custom size and color.
+pub fn label_with_size_and_color(text: impl Into<String>, size: f32, color: Color) -> impl Bundle {
     (
         Name::new("Label"),
         Text(text.into()),
         TextFont::from_font_size(size),
-        TextColor(LABEL_TEXT),
+        TextColor(color),
     )
 }
 
