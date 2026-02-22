@@ -33,9 +33,9 @@ pub struct BossPhase {
 }
 
 impl BossPhase {
-    pub const PHASE_1_HP: u32 = 2; // change to 30
-    pub const PHASE_2_HP: u32 = 3; // change to 45
-    pub const PHASE_3_HP: u32 = 4; // change to 60
+    pub const PHASE_1_HP: u32 = 20; // change to 30
+    pub const PHASE_2_HP: u32 = 30; // change to 45
+    pub const PHASE_3_HP: u32 = 40; // change to 60
 
     pub fn for_phase(phase: u8) -> Self {
         let max_hp = match phase {
@@ -183,19 +183,21 @@ pub fn phase1_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
         BossPhase::for_phase(1),
         BossIntroPlaying,
         Enemy::new_random(BossPhase::PHASE_1_HP as usize)
-            .with_shooting_range(250.)
+            .with_shooting_range(300.)
+            // Attack 1: A clean 3-shot spread
             .with_attack(EnemyAttack {
-                cooldown_timer: Timer::from_seconds(0.2, TimerMode::Repeating),
-                duration: Timer::from_seconds(3.0, TimerMode::Once),
-                shooting_pattern: vec![ShootingPattern::Straight],
-            })
-            .with_attack(EnemyAttack {
-                cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
-                duration: Timer::from_seconds(3.0, TimerMode::Once),
-                shooting_pattern: vec![ShootingPattern::Random {
+                cooldown_timer: Timer::from_seconds(0.8, TimerMode::Repeating),
+                duration: Timer::from_seconds(2.4, TimerMode::Once), // 3 bursts
+                shooting_pattern: vec![ShootingPattern::Spread {
                     count: 5,
-                    arc: 30.0_f32.to_radians(),
+                    arc: 90.0_f32.to_radians(),
                 }],
+            })
+            // Attack 2: A spaced-out ring to dodge through
+            .with_attack(EnemyAttack {
+                cooldown_timer: Timer::from_seconds(2.0, TimerMode::Repeating),
+                duration: Timer::from_seconds(2.0, TimerMode::Once), // 1 burst
+                shooting_pattern: vec![ShootingPattern::Ring { count: 8 }],
             }),
         AseAnimation {
             animation: Animation::tag("Idle")
@@ -224,41 +226,44 @@ pub fn phase2_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
         BossIntroPlaying,
         Enemy::new_random(BossPhase::PHASE_2_HP as usize) // change to 45
             .with_shooting_range(400.)
+            // Attack 1: Fast sweeping motion forcing the player to run
             .with_attack(EnemyAttack {
-                cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
-                duration: Timer::from_seconds(3.0, TimerMode::Once),
-                shooting_pattern: vec![
-                    ShootingPattern::Flank {
-                        angle: 45.0_f32.to_radians(),
-                    },
-                    ShootingPattern::Straight,
-                ],
-            })
-            .with_attack(EnemyAttack {
-                cooldown_timer: Timer::from_seconds(0.5, TimerMode::Repeating),
-                duration: Timer::from_seconds(1.0, TimerMode::Once),
-                shooting_pattern: vec![
-                    ShootingPattern::Flank {
-                        angle: 45.0_f32.to_radians(),
-                    },
-                    ShootingPattern::Straight,
-                ],
-            })
-            .with_attack(EnemyAttack {
-                cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
-                duration: Timer::from_seconds(2.0, TimerMode::Once),
-                shooting_pattern: vec![ShootingPattern::Spread {
-                    count: 4,
-                    arc: 90.0_f32.to_radians(),
+                cooldown_timer: Timer::from_seconds(0.15, TimerMode::Repeating),
+                duration: Timer::from_seconds(1.5, TimerMode::Once), // 10 shots in the sweep
+                shooting_pattern: vec![ShootingPattern::Sweep {
+                    arc: 120.0_f32.to_radians(),
+                    clockwise: true,
                 }],
             })
+            // Attack 2: Wide Spread mixed with Random suppression fire
             .with_attack(EnemyAttack {
                 cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
-                duration: Timer::from_seconds(3.0, TimerMode::Once),
-                shooting_pattern: vec![ShootingPattern::Random {
-                    count: 5,
-                    arc: 60.0_f32.to_radians(),
+                duration: Timer::from_seconds(3.0, TimerMode::Once), // 3 bursts
+                shooting_pattern: vec![
+                    ShootingPattern::Spread {
+                        count: 4,
+                        arc: 75.0_f32.to_radians(),
+                    },
+                    ShootingPattern::Random {
+                        count: 3,
+                        arc: 45.0_f32.to_radians(),
+                    },
+                ],
+            })
+            // Attack 3: Fast sweeping motion forcing the player to run in other direction
+            .with_attack(EnemyAttack {
+                cooldown_timer: Timer::from_seconds(0.15, TimerMode::Repeating),
+                duration: Timer::from_seconds(1.5, TimerMode::Once), // 10 shots in the sweep
+                shooting_pattern: vec![ShootingPattern::Sweep {
+                    arc: 120.0_f32.to_radians(),
+                    clockwise: false,
                 }],
+            })
+            // Attack 4: Faster, denser ring from Phase 1
+            .with_attack(EnemyAttack {
+                cooldown_timer: Timer::from_seconds(1.5, TimerMode::Repeating),
+                duration: Timer::from_seconds(1.5, TimerMode::Once), // 1 burst
+                shooting_pattern: vec![ShootingPattern::Ring { count: 10 }],
             }),
         AseAnimation {
             animation: Animation::tag("Idle")
@@ -287,29 +292,43 @@ pub fn phase3_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
         BossPhase::for_phase(3),
         BossIntroPlaying,
         Enemy::new_random(BossPhase::PHASE_3_HP as usize)
-            .with_shooting_range(250.)
+            .with_shooting_range(350.)
+            // Attack 1: The Pincer (Straight + Flank) - Punishes standing still
             .with_attack(EnemyAttack {
-                cooldown_timer: Timer::from_seconds(0.5, TimerMode::Repeating),
-                duration: Timer::from_seconds(5.0, TimerMode::Once),
-                shooting_pattern: vec![ShootingPattern::Ring { count: 7 }],
+                cooldown_timer: Timer::from_seconds(0.6, TimerMode::Repeating),
+                duration: Timer::from_seconds(2.4, TimerMode::Once),
+                shooting_pattern: vec![
+                    ShootingPattern::Straight,
+                    ShootingPattern::Flank {
+                        angle: 35.0_f32.to_radians(),
+                    },
+                ],
             })
+            // Attack 2: Bullet Hell Chaos (Dense Ring + Random)
             .with_attack(EnemyAttack {
-                cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
-                duration: Timer::from_seconds(3.0, TimerMode::Once),
-                shooting_pattern: vec![ShootingPattern::Random {
-                    count: 6,
-                    arc: 90.0_f32.to_radians(),
-                }],
-            })
-            .with_attack(EnemyAttack {
-                cooldown_timer: Timer::from_seconds(0.5, TimerMode::Repeating),
+                cooldown_timer: Timer::from_seconds(1.5, TimerMode::Repeating),
                 duration: Timer::from_seconds(3.0, TimerMode::Once),
                 shooting_pattern: vec![
-                    ShootingPattern::Spread {
-                        count: 4,
+                    ShootingPattern::Ring { count: 12 },
+                    ShootingPattern::Random {
+                        count: 5,
                         arc: 90.0_f32.to_radians(),
                     },
-                    ShootingPattern::Ring { count: 4 },
+                ],
+            })
+            // Attack 3: The Wall (Sweep + Tight Spread)
+            .with_attack(EnemyAttack {
+                cooldown_timer: Timer::from_seconds(0.25, TimerMode::Repeating),
+                duration: Timer::from_seconds(2.0, TimerMode::Once), // 8 sweep steps
+                shooting_pattern: vec![
+                    ShootingPattern::Sweep {
+                        arc: 90.0_f32.to_radians(),
+                        clockwise: false,
+                    },
+                    ShootingPattern::Spread {
+                        count: 2,
+                        arc: 15.0_f32.to_radians(),
+                    },
                 ],
             }),
         AseAnimation {
@@ -329,14 +348,14 @@ pub fn phase3_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
         Collider::circle(basic_enemy_collision_radius),
         TeleportAbility {
             positions: vec![
-                Vec2::new(xy.x, xy.y),
+                Vec2::new(xy.x, 110.0),
                 Vec2::new(245.0, 58.0),
                 Vec2::new(-29.3, 0.0),
                 Vec2::new(-220.0, -116.3),
                 Vec2::new(-226.0, 58.0),
                 Vec2::new(176.1, -120.3),
             ],
-            timer: Timer::from_seconds(1.0, TimerMode::Repeating),
+            timer: Timer::from_seconds(20.0, TimerMode::Repeating),
             current_index: 0,
         },
     )

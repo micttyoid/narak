@@ -69,6 +69,7 @@ pub fn spawn_dialogue_ui(cmd: &mut Commands, assets: &LevelAssets, initial_text:
                 ..default()
             },
             TextColor(BUTTON_TEXT),
+            TextLayout::new_with_justify(Justify::Center)
         )],
     ));
 }
