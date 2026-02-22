@@ -177,7 +177,7 @@ pub fn spawn_level(
             commands.insert_resource(DialogueQueue::new(lines));
 
             spawn_dialogue_ui(&mut commands, &level_assets, "Bla bla bla.");
-            let player_initial_transform = Vec2::new(-30.0, 0.0);
+            let player_initial_transform = Vec2::new(0.0, -90.0);
             commands.entity(lev_entity).insert((children![
                 player(
                     100.0,
@@ -185,7 +185,7 @@ pub fn spawn_level(
                     player_initial_transform,
                     current_level.player_stats()
                 ),
-                tutorial_boss((-30., 180.).into(), &anim_assets),
+                tutorial_boss((0.0, 60.).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
                     DespawnOnExit(Menu::None), // To remove at ending such as to [`Menu::Credit`]
@@ -207,7 +207,7 @@ pub fn spawn_level(
             ],));
         }
         Phase1 => {
-            let player_initial_transform = Vec2::new(-8.0, 40.0);
+            let player_initial_transform = Vec2::new(0.0, -90.0);
             commands.entity(lev_entity).insert((children![
                 player(
                     100.0,
@@ -215,7 +215,7 @@ pub fn spawn_level(
                     player_initial_transform,
                     current_level.player_stats()
                 ),
-                phase1_boss((-8.3, -120.5).into(), &anim_assets),
+                phase1_boss((0.0, 80.0).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
                     DespawnOnExit(Menu::None), // To remove at ending such as to [`Menu::Credit`]
@@ -224,7 +224,7 @@ pub fn spawn_level(
             ],));
         }
         Phase2 => {
-            let player_initial_transform = Vec2::new(-30.0, -360.0);
+            let player_initial_transform = Vec2::new(0.0, -150.0);
             commands.entity(lev_entity).insert((children![
                 player(
                     100.0,
@@ -232,7 +232,7 @@ pub fn spawn_level(
                     player_initial_transform,
                     current_level.player_stats()
                 ),
-                phase2_boss((-36.5, 222.0).into(), &anim_assets),
+                phase2_boss((0.0, 110.0).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
                     DespawnOnExit(Menu::None),
@@ -241,7 +241,7 @@ pub fn spawn_level(
             ],));
         }
         Phase3 => {
-            let player_initial_transform = Vec2::new(-175.0, -420.0);
+            let player_initial_transform = Vec2::new(0.0, -135.0);
             commands.entity(lev_entity).insert((children![
                 player(
                     100.0,
@@ -249,7 +249,7 @@ pub fn spawn_level(
                     player_initial_transform,
                     current_level.player_stats()
                 ),
-                phase3_boss((0., 400.).into(), &anim_assets),
+                phase3_boss((0., 125.).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
                     DespawnOnExit(Menu::None),
@@ -293,9 +293,9 @@ fn level_intro(
                         .animation
                         .play("Scream", AnimationRepeat::Count(4));
                     boss_anim.animation.then("Idle", AnimationRepeat::Loop);
-                    if let Ok(mut shake) = camera_shake_q.single_mut() {
-                        shake.trauma = 2.0;
-                    }
+                    // if let Ok(mut shake) = camera_shake_q.single_mut() {
+                    //     shake.trauma = 2.0;
+                    // }
                     cmd.entity(boss_entity)
                         .insert(BossIntroTimer(Timer::from_seconds(3.0, TimerMode::Once)));
                 }
