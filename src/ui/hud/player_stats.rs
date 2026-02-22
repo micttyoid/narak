@@ -71,8 +71,8 @@ pub fn spawn_playerstats_ui(
         GlobalZIndex(1),
         Node {
             position_type: PositionType::Absolute,
-            left: Val::Px(50.0),
-            top: Val::Px(50.0),
+            right: Val::Px(50.0),
+            bottom: Val::Px(50.0),
             flex_direction: FlexDirection::Column,
             row_gap: Val::Px(12.0),
             padding: UiRect::all(Val::Px(16.0)),

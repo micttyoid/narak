@@ -170,13 +170,18 @@ pub fn spawn_level(
     match current_level.get() {
         Tutorial => {
             let lines = vec![
-                "Bla bla bla".to_string(),
-                "Bla bla?".to_string(),
-                "Bla bla bla!".to_string(),
+                "The divine couple clashes,\nit is a cataclysm that threatens to tear the very fabric of reality.".to_string(),
+                "On one side stands Krishna, the upholder of Dharma\nand the inevitable hand of fate.".to_string(),
+                "On the other stands you, Satyabhama\narmed with primal fury and a desperate quest for grace.".to_string(),
+                "In this war of gods, who will emerge victorious? \nWill a mother’s love forge a new path for the fallen,\nor will the weight of Dharma crush the rebellion?.".to_string(),
             ];
             commands.insert_resource(DialogueQueue::new(lines));
 
-            spawn_dialogue_ui(&mut commands, &level_assets, "Bla bla bla.");
+            spawn_dialogue_ui(
+                &mut commands,
+                &level_assets,
+                "As the divine couple clashes, the fabric of reality begins to fray.",
+            );
             let player_initial_transform = Vec2::new(0.0, -90.0);
             commands.entity(lev_entity).insert((children![
                 player(
@@ -215,7 +220,7 @@ pub fn spawn_level(
                     player_initial_transform,
                     current_level.player_stats()
                 ),
-                phase1_boss((0.0, 80.0).into(), &anim_assets),
+                phase1_boss((0.0, 60.0).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
                     DespawnOnExit(Menu::None), // To remove at ending such as to [`Menu::Credit`]
@@ -232,7 +237,7 @@ pub fn spawn_level(
                     player_initial_transform,
                     current_level.player_stats()
                 ),
-                phase2_boss((0.0, 110.0).into(), &anim_assets),
+                phase2_boss((0.0, 80.0).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
                     DespawnOnExit(Menu::None),
@@ -249,7 +254,7 @@ pub fn spawn_level(
                     player_initial_transform,
                     current_level.player_stats()
                 ),
-                phase3_boss((0., 125.).into(), &anim_assets),
+                phase3_boss((0., 90.).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
                     DespawnOnExit(Menu::None),
@@ -293,9 +298,9 @@ fn level_intro(
                         .animation
                         .play("Scream", AnimationRepeat::Count(4));
                     boss_anim.animation.then("Idle", AnimationRepeat::Loop);
-                    // if let Ok(mut shake) = camera_shake_q.single_mut() {
-                    //     shake.trauma = 2.0;
-                    // }
+                    if let Ok(mut shake) = camera_shake_q.single_mut() {
+                        shake.trauma = 2.0;
+                    }
                     cmd.entity(boss_entity)
                         .insert(BossIntroTimer(Timer::from_seconds(3.0, TimerMode::Once)));
                 }
