@@ -77,8 +77,6 @@ pub struct Phase1Assets {
 // phase 2
 #[derive(Asset, Clone, Reflect)]
 pub struct Phase2Assets {
-    pub aseprite: Handle<Aseprite>,
-    pub enemy: Handle<Aseprite>,
     #[dependency]
     pub attacks: Vec<Handle<AudioSource>>,
     #[dependency]
@@ -93,7 +91,6 @@ pub struct Phase2Assets {
 #[derive(Asset, Clone, Reflect)]
 pub struct Phase3Assets {
     pub aseprite: Handle<Aseprite>,
-    pub enemy: Handle<Aseprite>,
     #[dependency]
     pub attacks: Vec<Handle<AudioSource>>,
     #[dependency]
@@ -124,7 +121,7 @@ pub fn tutorial_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
                 .with_repeat(AnimationRepeat::Loop)
                 .with_direction(AnimationDirection::Forward)
                 .with_speed(1.0),
-            aseprite: anim_assets.enemies.phase2.enemy.clone(),
+            aseprite: anim_assets.enemies.eye_enemy.aseprite.clone(),
         },
         Sprite::default(),
         ScreenWrap,
@@ -320,7 +317,7 @@ pub fn phase3_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
                 .with_repeat(AnimationRepeat::Loop)
                 .with_direction(AnimationDirection::Forward)
                 .with_speed(1.0),
-            aseprite: anim_assets.enemies.phase1.aseprite.clone(),
+            aseprite: anim_assets.enemies.phase3.aseprite.clone(),
         },
         Sprite::default(),
         ScreenWrap,

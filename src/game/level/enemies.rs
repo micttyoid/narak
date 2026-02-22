@@ -1,23 +1,14 @@
 use crate::{
-    game::{
-        animation::*,
-        level::{
-            bosses::{Phase1Assets, Phase2Assets, Phase3Assets},
-            enemy_behavior::{EnemyAttack, Move, ShootingPattern},
-        },
-        movement::ScreenWrap,
-        player::PLAYER_Z_TRANSLATION,
+    game::level::{
+        bosses::{Phase1Assets, Phase2Assets, Phase3Assets},
+        enemy_behavior::{EnemyAttack, Move},
     },
     screens::gameplay::GameplayLifetime,
 };
 use avian2d::{math::TAU, prelude::*};
 use bevy::prelude::*;
-use bevy_aseprite_ultra::prelude::{
-    Animation, AnimationDirection, AnimationRepeat, AseAnimation, Aseprite,
-};
+use bevy_aseprite_ultra::prelude::Aseprite;
 use rand::Rng;
-
-pub const ENEMY_Z_TRANSLATION: f32 = PLAYER_Z_TRANSLATION;
 
 #[derive(Component)]
 #[require(GameplayLifetime, Collider)]
@@ -100,7 +91,6 @@ impl Enemy {
 
 #[derive(Asset, Clone, Reflect)]
 pub struct EnemyAssets {
-    pub seedlng_aseprite: Handle<Aseprite>,
     pub eye_enemy: EyeEnemyAssets,
     pub phase1: Phase1Assets,
     pub phase2: Phase2Assets,
@@ -115,41 +105,4 @@ pub struct EyeEnemyAssets {
     pub aseprite: Handle<Aseprite>,
     #[dependency]
     pub damages: Vec<Handle<AudioSource>>,
-}
-
-#[allow(dead_code)]
-/// An example of an enemy (Lv1 Basic Enemy)
-pub fn basic_enemy(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
-    let basic_enemy_collision_radius: f32 = 12.;
-    (
-        Name::new("Basic Enemy"),
-        Enemy::new_random(3)
-            .with_shooting_range(400.)
-            .with_attack(EnemyAttack {
-                cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
-                duration: Timer::from_seconds(2.0, TimerMode::Once),
-                shooting_pattern: vec![ShootingPattern::Straight],
-            })
-            .with_attack(EnemyAttack {
-                cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
-                duration: Timer::from_seconds(2.0, TimerMode::Once),
-                shooting_pattern: vec![ShootingPattern::Flank {
-                    angle: 22.5_f32.to_radians(),
-                }],
-            }),
-        AseAnimation {
-            animation: Animation::tag("Idle")
-                .with_repeat(AnimationRepeat::Loop)
-                .with_direction(AnimationDirection::Forward)
-                .with_speed(1.0),
-            aseprite: anim_assets.enemies.seedlng_aseprite.clone(),
-        },
-        Sprite::default(),
-        ScreenWrap,
-        LockedAxes::new().lock_rotation(),
-        Transform::from_xyz(xy.x, xy.y, ENEMY_Z_TRANSLATION),
-        RigidBody::Dynamic,
-        GravityScale(0.0),
-        Collider::circle(basic_enemy_collision_radius),
-    )
 }
