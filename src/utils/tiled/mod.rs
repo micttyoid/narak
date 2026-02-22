@@ -62,7 +62,7 @@ pub fn spawn_tiled_map(
         Level::Tutorial => "level0.tmx",
         Level::Phase1 => "level1.tmx",
         Level::Phase2 => "level2.tmx",
-        Level::Phase3 => "level4.tmx",
+        Level::Phase3 => "level3.tmx",
     };
     commands.spawn((
         TiledMapBundle {
