@@ -330,13 +330,13 @@ pub fn phase3_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
         TeleportAbility {
             positions: vec![
                 Vec2::new(xy.x, xy.y),
-                Vec2::new(200.0, 100.0),
-                //Vec2::new(250.0, 60.0),
-                Vec2::new(224.0, -345.3),
-                Vec2::new(-244.1, -93.3),
-                Vec2::new(-160.3, 133.5),
+                Vec2::new(245.0, 58.0),
+                Vec2::new(-29.3, 0.0),
+                Vec2::new(-220.0, -116.3),
+                Vec2::new(-226.0, 58.0),
+                Vec2::new(176.1, -120.3),
             ],
-            timer: Timer::from_seconds(20.0, TimerMode::Repeating),
+            timer: Timer::from_seconds(1.0, TimerMode::Repeating),
             current_index: 0,
         },
     )
