@@ -207,7 +207,7 @@ pub fn spawn_level(
             ],));
         }
         Phase1 => {
-            let player_initial_transform = Vec2::new(-8.0, -211.0);
+            let player_initial_transform = Vec2::new(-8.0, 40.0);
             commands.entity(lev_entity).insert((children![
                 player(
                     100.0,
