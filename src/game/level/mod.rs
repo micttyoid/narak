@@ -237,7 +237,7 @@ pub fn spawn_level(
                     player_initial_transform,
                     current_level.player_stats()
                 ),
-                phase2_boss((0.0, 60.0).into(), &anim_assets),
+                phase2_boss((0.0, 80.0).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
                     DespawnOnExit(Menu::None),
@@ -254,7 +254,7 @@ pub fn spawn_level(
                     player_initial_transform,
                     current_level.player_stats()
                 ),
-                phase3_boss((0., 110.).into(), &anim_assets),
+                phase3_boss((0., 90.).into(), &anim_assets),
                 (
                     Name::new("Gameplay Music"),
                     DespawnOnExit(Menu::None),

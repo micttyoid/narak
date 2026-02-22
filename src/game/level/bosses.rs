@@ -134,46 +134,6 @@ pub fn tutorial_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     )
 }
 
-// // boss 1 HP 6
-// pub fn gate_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
-//     (
-//         Name::new(GATES_NAME),
-//         Boss,
-//         Enemy::new_random(6)
-//             .with_shooting_range(300.)
-//             .with_attack(EnemyAttack {
-//                 cooldown_timer: Timer::from_seconds(1.0, TimerMode::Repeating),
-//                 duration: Timer::from_seconds(4.0, TimerMode::Once),
-//                 shooting_pattern: vec![ShootingPattern::Flank {
-//                     angle: 10.0_f32.to_radians(),
-//                 }],
-//             })
-//             .with_attack(EnemyAttack {
-//                 cooldown_timer: Timer::from_seconds(2.0, TimerMode::Repeating),
-//                 duration: Timer::from_seconds(4.0, TimerMode::Once),
-//                 shooting_pattern: vec![ShootingPattern::Spread {
-//                     count: 5,
-//                     arc: 45.0_f32.to_radians(),
-//                 }],
-//             }),
-//         AseAnimation {
-//             animation: Animation::tag("closed")
-//                 .with_repeat(AnimationRepeat::Loop)
-//                 .with_direction(AnimationDirection::Forward)
-//                 .with_speed(1.0),
-//             aseprite: anim_assets.enemies.gates.aseprite.clone(),
-//         },
-//         Sprite::default(),
-//         ScreenWrap,
-//         LockedAxes::new().lock_rotation(), // To be resolved with later kinematic solution
-//         Transform::from_xyz(xy.x, xy.y, BOSS_Z_TRANSLATION),
-//         RigidBody::Static,
-//         GravityScale(0.0),
-//         Dominance(5), // dominates all dynamic bodies with a dominance lower than `5`.
-//         Collider::rectangle(50., 50.),
-//     )
-// }
-
 // phase 1 HP 30
 pub fn phase1_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
     let basic_enemy_collision_radius: f32 = 32.;
@@ -228,8 +188,8 @@ pub fn phase2_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
             .with_shooting_range(400.)
             // Attack 1: Fast sweeping motion forcing the player to run
             .with_attack(EnemyAttack {
-                cooldown_timer: Timer::from_seconds(0.15, TimerMode::Repeating),
-                duration: Timer::from_seconds(1.5, TimerMode::Once), // 10 shots in the sweep
+                cooldown_timer: Timer::from_seconds(0.25, TimerMode::Repeating),
+                duration: Timer::from_seconds(2.5, TimerMode::Once), // 10 shots in the sweep
                 shooting_pattern: vec![ShootingPattern::Sweep {
                     arc: 120.0_f32.to_radians(),
                     clockwise: true,
@@ -241,8 +201,8 @@ pub fn phase2_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
                 duration: Timer::from_seconds(3.0, TimerMode::Once), // 3 bursts
                 shooting_pattern: vec![
                     ShootingPattern::Spread {
-                        count: 4,
-                        arc: 75.0_f32.to_radians(),
+                        count: 2,
+                        arc: 90.0_f32.to_radians(),
                     },
                     ShootingPattern::Random {
                         count: 3,
@@ -252,8 +212,8 @@ pub fn phase2_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
             })
             // Attack 3: Fast sweeping motion forcing the player to run in other direction
             .with_attack(EnemyAttack {
-                cooldown_timer: Timer::from_seconds(0.15, TimerMode::Repeating),
-                duration: Timer::from_seconds(1.5, TimerMode::Once), // 10 shots in the sweep
+                cooldown_timer: Timer::from_seconds(0.25, TimerMode::Repeating),
+                duration: Timer::from_seconds(2.5, TimerMode::Once), // 10 shots in the sweep
                 shooting_pattern: vec![ShootingPattern::Sweep {
                     arc: 120.0_f32.to_radians(),
                     clockwise: false,
@@ -309,7 +269,7 @@ pub fn phase3_boss(xy: Vec2, anim_assets: &AnimationAssets) -> impl Bundle {
                 cooldown_timer: Timer::from_seconds(1.5, TimerMode::Repeating),
                 duration: Timer::from_seconds(3.0, TimerMode::Once),
                 shooting_pattern: vec![
-                    ShootingPattern::Ring { count: 12 },
+                    ShootingPattern::Ring { count: 10 },
                     ShootingPattern::Random {
                         count: 5,
                         arc: 90.0_f32.to_radians(),
